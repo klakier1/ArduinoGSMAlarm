@@ -1,0 +1,132 @@
+Project:               GsmAlarm
+File:                  file:/D:/Eclipse-workspace-cpp/GsmAlarm/GsmAlarm.cpp
+Language:              GNU C++
+Index Version:         215.0
+Build Configuration:   Configuration
+Context:               file:/D:/Eclipse-workspace-cpp/GsmAlarm/GsmAlarm.cpp
+   C++, {}
+Versions in Index:     1
+   C++: {}; 0 macros, 5 includes, 146 names;
+
+Macro definitions (from language + headers in index):
+   BGSMSHIELD_H_=
+   COMM_BUF_LEN=200
+   GSM_PWRKEY_PIN=7
+   GSM_RESET_PIN=6
+   GSM_RX_PIN=2
+   GSM_SERIAL_SPEED=57600
+   GSM_STATUS_PIN=5
+   GSM_TX_PIN=3
+   PHONEBOOK_CAPACITY=5
+   PHONEBOOK_FIXED_NUMBERS_COUNT=1
+   PHONEBOOK_H_=
+   PHONEBOOK_NUMBER_LEN=9
+   PIRSENSOR_H_=
+   __builtin_offsetof(T,m)=(reinterpret_cast <size_t>(&reinterpret_cast <const volatile char &>(static_cast<T*> (0)->m)))
+   __builtin_types_compatible_p(x,y)=__builtin_types_compatible_p(sizeof(x),sizeof(y))
+   __builtin_va_arg(ap,type)=*(typeof(type) *)ap
+   __CDT_PARSER__=91100
+   __complex__=_Complex
+   __COUNTER__=0
+   __cplusplus=201103L
+   __DATE__="kwi 01 2020"
+   __extension__=
+   __FILE__="file"
+   __imag__=(int)
+   __LINE__=1
+   __null=0
+   __offsetof__(x)=(x)
+   __real__=(int)
+   __stdcall=
+   __STDC__=1
+   __thread=
+   __TIME__="00:46:46"
+
+Unresolved includes (from headers in index):
+   Unresolved inclusion: Arduino.h in file file:/D:/Eclipse-workspace-cpp/GsmAlarm/BGsmShield.h
+   Unresolved inclusion: SoftwareSerial.h in file file:/D:/Eclipse-workspace-cpp/GsmAlarm/BGsmShield.h
+
+Scanner problems:
+   Unresolved inclusion: "Arduino.h" in file: D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:2
+   Unresolved inclusion: <string.h> in file: D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:6
+
+Unresolved names:
+   Attempt to use symbol failed: size_t in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:21
+   Attempt to use symbol failed: size_t in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:22
+   Attempt to use symbol failed: size_t in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:22
+   Attempt to use symbol failed: String in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:23
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:27
+   Attempt to use symbol failed: begin in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:27
+   Attempt to use symbol failed: SetIncomeVoiceCallback in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:31
+   Attempt to use symbol failed: SetIncomeSmsCallback in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:32
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:34
+   Attempt to use symbol failed: print in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:34
+   Attempt to use symbol failed: errorHandler in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:37
+   Attempt to use symbol failed: SendATCmdWaitResp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:39
+   Attempt to use symbol failed: errorHandler in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:40
+   Attempt to use symbol failed: SendATCmdWaitResp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:43
+   Attempt to use symbol failed: SendATCmdWaitResp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:51
+   Attempt to use symbol failed: SendATCmdWaitResp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:56
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:59
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:59
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:72
+   Attempt to use symbol failed: print in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:72
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:73
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:73
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:78
+   Attempt to use symbol failed: print in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:78
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:79
+   Attempt to use symbol failed: print in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:79
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:80
+   Attempt to use symbol failed: print in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:80
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:81
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:81
+   Attempt to use symbol failed: NULL in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:87
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:91
+   Attempt to use symbol failed: print in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:91
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:92
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:92
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:96
+   Attempt to use symbol failed: print in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:96
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:97
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:97
+   Attempt to use symbol failed: size_t in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:104
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:105
+   Attempt to use symbol failed: print in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:105
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:106
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:106
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:109
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:109
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:111
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:111
+   Attempt to use symbol failed: size_t in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:114
+   Attempt to use symbol failed: size_t in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:114
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:115
+   Attempt to use symbol failed: print in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:115
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:116
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:116
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:117
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:117
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:123
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:126
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:129
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:132
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:135
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:140
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:149
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:152
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:158
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:161
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:166
+   Attempt to use symbol failed: memcmp in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:176
+   Attempt to use symbol failed: String in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:190
+   Attempt to use symbol failed: Serial in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:192
+   Attempt to use symbol failed: println in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:192
+   Attempt to use symbol failed: digitalRead in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:193
+   Attempt to use symbol failed: digitalWrite in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:194
+   Attempt to use symbol failed: LOW in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:194
+   Attempt to use symbol failed: digitalWrite in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:194
+   Attempt to use symbol failed: HIGH in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:194
+   Attempt to use symbol failed: delay in file D:\Eclipse-workspace-cpp\GsmAlarm\GsmAlarm.cpp:195
+
+Written on Wed Apr 01 00:46:46 CEST 2020
