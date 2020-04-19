@@ -25,6 +25,7 @@ int smsNumMemberAdd;
 int smsNumMemberDelete;
 int smsNumError;
 int smsNumFixedMember;
+int smsNumStrangerStart;  //jak ktos nie dodany wysle start
 
 /*********** Function Prototypes ****************************************************/
 void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args);
@@ -88,6 +89,10 @@ void setup() {
 	if (0 > (smsNumError = bgsm->StoreSMS("BLAD")))
 		errorHandler();
 	if (0 > (smsNumFixedMember = bgsm->StoreSMS("JESTES STALYM UZYTKOWNIKIEM")))
+		errorHandler();
+	if (0
+			> (smsNumStrangerStart = bgsm->StoreSMS(
+					"NIE JESTES DODANY DO LISTY UZYTKOWNIKOW")))
 		errorHandler();
 
 	Serial.println("Done");
@@ -167,19 +172,25 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			bgsm->SendSMSFromStorage(num, smsNumFixedMember);
 
 		} else if (memcmp("Status", msg, 6) == 0) {
-			if (sensor1->IsArmed() && sensor2->IsArmed())
-				bgsm->SendSMSFromStorage(num, smsNumArmed);
-			else
-				bgsm->SendSMSFromStorage(num, smsNumDisarmed);
-
-		} else if (memcmp("Config", msg, 6) == 0) {
 			if (bgsm->SendSMSBegin(num)) {
+				//armed or disarmed
+				if (sensor1->IsArmed() && sensor2->IsArmed())
+					bgsm->SendSMSAttachText("UZBROJONY");
+				else
+					bgsm->SendSMSAttachText("ROZBROJONY");
+
+				bgsm->SendSMSAttachText("\n");
+
 				//list of members
 				for (int i = 0; i < PHONEBOOK_CAPACITY; i++) {
+					bgsm->SendSMSAttachInt(i);
+					bgsm->SendSMSAttachText(") ");
 					if (phonebook.phoneNumbers[i] != NULL) {
 						bgsm->SendSMSAttachText(phonebook.phoneNumbers[i]);
-						bgsm->SendSMSAttachText("\n");
+					} else {
+						bgsm->SendSMSAttachText("-------");
 					}
+					bgsm->SendSMSAttachText("\n");
 				}
 				//length of queue
 				bgsm->SendSMSAttachText("QUEUE:");
@@ -200,6 +211,41 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			sensor1->Arm(false);
 			sensor2->Arm(false);
 
+		} else if (memcmp("AddNum ", msg, 7) == 0) {
+			//bgsm->SendSMSFromStorage(num, smsNumMemberAdd);
+			if (msg_len >= 16) {
+				bool isCorrectNumber = true;
+				for(int i = 7; i < 16; i++ ){
+//					Serial.print("ADDNUM DEBUG i:");
+//					Serial.print(i);
+//					Serial.print(" val:");
+//					Serial.println(*(msg + i));
+					if(!((*(msg + i) >= '0') && (*(msg + i) <= '9'))){
+						isCorrectNumber = false;
+					}
+				}
+
+				if(isCorrectNumber){
+					if(int addResult = phonebook.Add(msg + 7) != 0){
+						Serial.print("ADDNUM PHONEBOOK RESULT");
+						Serial.println(addResult);
+					} else {
+						Serial.println("ADDNUM PHONEBOOK RESULT ERROR");
+					}
+				} else {
+					Serial.println("ADDNUM INCORRECT NUM");
+				}
+				Serial.print("ADDNUM LEN;");
+				Serial.println((int) msg_len);
+			} else {
+				Serial.println("ADDNUM WRONG LENGTH");
+			}
+
+		} else if (memcmp("DelNum ", msg, 7) == 0) {
+			//bgsm->SendSMSFromStorage(num, smsNumMemberAdd);
+			Serial.print("DELNUM LEN:");
+			Serial.println((int) msg_len);
+
 		} else {
 			return false;
 		}
@@ -216,12 +262,6 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			else
 				bgsm->SendSMSFromStorage(num, smsNumError);
 
-		} else if (memcmp("Status", msg, 6) == 0) {
-			if (sensor1->IsArmed() && sensor2->IsArmed())
-				bgsm->SendSMSFromStorage(num, smsNumArmed);
-			else
-				bgsm->SendSMSFromStorage(num, smsNumDisarmed);
-
 		} else if (memcmp("Start", msg, 5) == 0) {
 			bgsm->SendSMSFromStorage(num, smsNumArmed);
 			sensor1->Arm(true);
@@ -231,6 +271,31 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			bgsm->SendSMSFromStorage(num, smsNumDisarmed);
 			sensor1->Arm(false);
 			sensor2->Arm(false);
+
+		} else if (memcmp("Status", msg, 6) == 0) {
+			if (bgsm->SendSMSBegin(num)) {
+				//armed or disarmed
+				if (sensor1->IsArmed() && sensor2->IsArmed())
+					bgsm->SendSMSAttachText("UZBROJONY");
+				else
+					bgsm->SendSMSAttachText("ROZBROJONY");
+
+				bgsm->SendSMSAttachText("\n");
+
+				//list of members
+				for (int i = 0; i < PHONEBOOK_CAPACITY; i++) {
+					bgsm->SendSMSAttachInt(i);
+					bgsm->SendSMSAttachText(") ");
+					if (phonebook.phoneNumbers[i] != NULL) {
+						bgsm->SendSMSAttachText(phonebook.phoneNumbers[i]);
+					} else {
+						bgsm->SendSMSAttachText("-------");
+					}
+					bgsm->SendSMSAttachText("\n");
+				}
+				//send
+				bgsm->SendSMSEnd();
+			}
 
 		} else {
 			return false;
@@ -245,6 +310,10 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 				bgsm->SendSMSFromStorage(num, smsNumMemberAdd);
 			else
 				bgsm->SendSMSFromStorage(num, smsNumError);
+
+		} else if (memcmp("Start", msg, 5) == 0 || memcmp("Stop", msg, 4) == 0
+				|| memcmp("Status", msg, 6) == 0) {
+			bgsm->SendSMSFromStorage(num, smsNumStrangerStart);
 
 		} else {
 			return false;
