@@ -17,6 +17,7 @@ PIRSensor *sensor2;
 BGsmShield *bgsm;
 Phonebook phonebook;
 
+//Handles for most used SMS responses stored in SIM
 int smsNumAlaram1;
 int smsNumAlaram2;
 int smsNumArmed;
@@ -213,38 +214,93 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 
 		} else if (memcmp("AddNum ", msg, 7) == 0) {
 			//bgsm->SendSMSFromStorage(num, smsNumMemberAdd);
+			int addResult = 0;
+
 			if (msg_len >= 16) {
 				bool isCorrectNumber = true;
-				for(int i = 7; i < 16; i++ ){
-//					Serial.print("ADDNUM DEBUG i:");
-//					Serial.print(i);
-//					Serial.print(" val:");
-//					Serial.println(*(msg + i));
-					if(!((*(msg + i) >= '0') && (*(msg + i) <= '9'))){
+				for (int i = 7; i < 16; i++) {
+					if (!((*(msg + i) >= '0') && (*(msg + i) <= '9'))) {
 						isCorrectNumber = false;
 					}
 				}
 
-				if(isCorrectNumber){
-					if(int addResult = phonebook.Add(msg + 7) != 0){
-						Serial.print("ADDNUM PHONEBOOK RESULT");
-						Serial.println(addResult);
+				bgsm->SendSMSBegin(num);
+
+				if (isCorrectNumber) {
+					if ((addResult = phonebook.Add(msg + 7)) != 0) {
+						bgsm->SendSMSAttachText("ADDNUM PHONEBOOK RESULT ");
+						bgsm->SendSMSAttachInt(addResult);
 					} else {
-						Serial.println("ADDNUM PHONEBOOK RESULT ERROR");
+						bgsm->SendSMSAttachText(
+								"ADDNUM PHONEBOOK RESULT ERROR");
 					}
 				} else {
-					Serial.println("ADDNUM INCORRECT NUM");
+					bgsm->SendSMSAttachText("ADDNUM INCORRECT NUM");
 				}
-				Serial.print("ADDNUM LEN;");
-				Serial.println((int) msg_len);
 			} else {
-				Serial.println("ADDNUM WRONG LENGTH");
+				bgsm->SendSMSAttachText("ADDNUM WRONG LENGTH");
+			}
+
+			bgsm->SendSMSEnd();
+
+			//send feedback message
+			if (addResult) {
+				Serial.print(phonebook.phoneNumbers[addResult]);
+				if (bgsm->SendSMSBegin(phonebook.phoneNumbers[addResult])) {
+					bgsm->SendSMSAttachText("DODANY PRZEZ ");
+					bgsm->SendSMSAttachText(num);
+					bgsm->SendSMSEnd();
+				} else {
+					Serial.println("Send feedback message error");
+				}
 			}
 
 		} else if (memcmp("DelNum ", msg, 7) == 0) {
-			//bgsm->SendSMSFromStorage(num, smsNumMemberAdd);
-			Serial.print("DELNUM LEN:");
-			Serial.println((int) msg_len);
+
+			bool deleteResult = false;
+			char* storeNumberToDelete = (char*) malloc(PHONEBOOK_NUMBER_LEN + 1);
+			storeNumberToDelete[PHONEBOOK_NUMBER_LEN] = NULL;
+
+			bgsm->SendSMSBegin(num);
+			bgsm->SendSMSAttachText("DELNUM ");
+
+			int numToDelete = atoi(msg + 7);
+			if (numToDelete >= PHONEBOOK_FIXED_NUMBERS_COUNT
+					&& numToDelete < PHONEBOOK_CAPACITY) {
+				if(phonebook.phoneNumbers[numToDelete] != NULL){
+
+					bgsm->SendSMSAttachText(phonebook.phoneNumbers[numToDelete]);
+					strcpy(storeNumberToDelete, phonebook.phoneNumbers[numToDelete]);
+
+					if(deleteResult = phonebook.Delete(numToDelete)){ // @suppress("Assignment in condition")
+						bgsm->SendSMSAttachText(" OK");
+					} else {
+						bgsm->SendSMSAttachText(" ERROR");
+					}
+
+				} else {
+					bgsm->SendSMSAttachText("POSITION EMPTY");
+				}
+			} else {
+				bgsm->SendSMSAttachText("POSITION ERROR");
+			}
+
+			bgsm->SendSMSEnd();
+
+			//send feedback message
+			if (deleteResult) {
+				Serial.print(storeNumberToDelete);
+				if (bgsm->SendSMSBegin(storeNumberToDelete)) {
+					bgsm->SendSMSAttachText("USUNIETY PRZEZ ");
+					bgsm->SendSMSAttachText(num);
+					bgsm->SendSMSEnd();
+				} else {
+					Serial.println("Send feedback message error");
+				}
+			}
+
+			free(storeNumberToDelete);
+
 
 		} else {
 			return false;

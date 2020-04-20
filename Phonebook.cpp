@@ -100,8 +100,14 @@ number_status Phonebook::Contains(const char *number) {
 void Phonebook::Print(void) {
 	Serial.println(" *** BAZA ***");
 	for (int i = 0; i < PHONEBOOK_CAPACITY; i++) {
-		if (phoneNumbers[i] != NULL)
+		Serial.print(" ");
+		Serial.print(i);
+		Serial.print(") ");
+		if (phoneNumbers[i] != NULL) {
 			Serial.println(phoneNumbers[i]);
+		} else {
+			Serial.println("---");
+		}
 	}
 	Serial.println(" ************");
 }
