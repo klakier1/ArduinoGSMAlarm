@@ -200,9 +200,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 				//send
 				bgsm->SendSMSEnd();
 			}
-		}
-
-		else if (memcmp("Start", msg, 5) == 0) {
+		} else if (memcmp("Start", msg, 5) == 0) {
 			bgsm->SendSMSFromStorage(num, smsNumArmed);
 			sensor1->Arm(true);
 			sensor2->Arm(true);
