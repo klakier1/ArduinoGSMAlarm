@@ -258,7 +258,8 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 		} else if (memcmp("DelNum ", msg, 7) == 0) {
 
 			bool deleteResult = false;
-			char* storeNumberToDelete = (char*) malloc(PHONEBOOK_NUMBER_LEN + 1);
+			char* storeNumberToDelete = (char*) malloc(
+			PHONEBOOK_NUMBER_LEN + 1);
 			storeNumberToDelete[PHONEBOOK_NUMBER_LEN] = NULL;
 
 			bgsm->SendSMSBegin(num);
@@ -267,12 +268,14 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			int numToDelete = atoi(msg + 7);
 			if (numToDelete >= PHONEBOOK_FIXED_NUMBERS_COUNT
 					&& numToDelete < PHONEBOOK_CAPACITY) {
-				if(phonebook.phoneNumbers[numToDelete] != NULL){
+				if (phonebook.phoneNumbers[numToDelete] != NULL) {
 
-					bgsm->SendSMSAttachText(phonebook.phoneNumbers[numToDelete]);
-					strcpy(storeNumberToDelete, phonebook.phoneNumbers[numToDelete]);
+					bgsm->SendSMSAttachText(
+							phonebook.phoneNumbers[numToDelete]);
+					strcpy(storeNumberToDelete,
+							phonebook.phoneNumbers[numToDelete]);
 
-					if(deleteResult = phonebook.Delete(numToDelete)){ // @suppress("Assignment in condition")
+					if (deleteResult = phonebook.Delete(numToDelete)) { // @suppress("Assignment in condition")
 						bgsm->SendSMSAttachText(" OK");
 					} else {
 						bgsm->SendSMSAttachText(" ERROR");
@@ -301,7 +304,6 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 
 			free(storeNumberToDelete);
 
-
 		} else {
 			return false;
 		}
@@ -313,20 +315,41 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			bgsm->SendSMSFromStorage(num, smsNumMemberAdd);
 
 		} else if (memcmp("Usun", msg, 4) == 0) {
-			if (phonebook.Delete(num))
+			if (phonebook.Delete(num)) {
 				bgsm->SendSMSFromStorage(num, smsNumMemberDelete);
-			else
+
+				bgsm->SendSMSBegin(bgsm->GetDebugNumber());
+				bgsm->SendSMSAttachText("DELETE OK ");
+				bgsm->SendSMSAttachText(num);
+				bgsm->SendSMSEnd();
+			} else {
 				bgsm->SendSMSFromStorage(num, smsNumError);
+
+				bgsm->SendSMSBegin(bgsm->GetDebugNumber());
+				bgsm->SendSMSAttachText("DELETE ERROR ");
+				bgsm->SendSMSAttachText(num);
+				bgsm->SendSMSEnd();
+			}
 
 		} else if (memcmp("Start", msg, 5) == 0) {
 			bgsm->SendSMSFromStorage(num, smsNumArmed);
 			sensor1->Arm(true);
 			sensor2->Arm(true);
 
+			bgsm->SendSMSBegin(bgsm->GetDebugNumber());
+			bgsm->SendSMSAttachText("ARMED BY ");
+			bgsm->SendSMSAttachText(num);
+			bgsm->SendSMSEnd();
+
 		} else if (memcmp("Stop", msg, 4) == 0) {
 			bgsm->SendSMSFromStorage(num, smsNumDisarmed);
 			sensor1->Arm(false);
 			sensor2->Arm(false);
+
+			bgsm->SendSMSBegin(bgsm->GetDebugNumber());
+			bgsm->SendSMSAttachText("DISARMED BY ");
+			bgsm->SendSMSAttachText(num);
+			bgsm->SendSMSEnd();
 
 		} else if (memcmp("Status", msg, 6) == 0) {
 			if (bgsm->SendSMSBegin(num)) {
@@ -362,10 +385,21 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 	case STRANGER: {
 
 		if (memcmp("Dodaj", msg, 5) == 0) {
-			if (phonebook.Add(num))
+			if (phonebook.Add(num)) {
 				bgsm->SendSMSFromStorage(num, smsNumMemberAdd);
-			else
+
+				bgsm->SendSMSBegin(bgsm->GetDebugNumber());
+				bgsm->SendSMSAttachText("ADD REQ OK ");
+				bgsm->SendSMSAttachText(num);
+				bgsm->SendSMSEnd();
+			} else {
 				bgsm->SendSMSFromStorage(num, smsNumError);
+
+				bgsm->SendSMSBegin(bgsm->GetDebugNumber());
+				bgsm->SendSMSAttachText("ADD REQ ERROR ");
+				bgsm->SendSMSAttachText(num);
+				bgsm->SendSMSEnd();
+			}
 
 		} else if (memcmp("Start", msg, 5) == 0 || memcmp("Stop", msg, 4) == 0
 				|| memcmp("Status", msg, 6) == 0) {

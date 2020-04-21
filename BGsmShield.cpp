@@ -72,6 +72,10 @@ void BGsmShield::ResetDebugNumber(){
 	_debugNumber = NULL;
 }
 
+const char* BGsmShield::GetDebugNumber(){
+	return _debugNumber;
+}
+
 /**********************************************************
  Method sends AT command and waits for response
 
@@ -635,7 +639,7 @@ int BGsmShield::StoreSMS(char *message_str) {
 	return -1;
 }
 
-int BGsmShield::SendSMSBegin(char *number_str) {
+int BGsmShield::SendSMSBegin(const char *number_str) {
 	// send  AT+CMGS="number_str"
 	_cell.print(F("AT+CMGS=\""));
 	_cell.print(number_str);
@@ -685,7 +689,13 @@ int BGsmShield::ProcessSMS(int no){
 				Serial.println(_debugNumber);
 				//Forward SMS if it isn't processed
 				if(_debugNumber != NULL){
+					//first orginal SMS
 					SendSMSFromStorage(_debugNumber, no);
+					//second information about sender
+					SendSMSBegin(_debugNumber);
+					SendSMSAttachText("SMS FROM ");
+					SendSMSAttachText(tel);
+					SendSMSEnd();
 				}
 			} else {
 				Serial.println("PROCESSING SMS OK");

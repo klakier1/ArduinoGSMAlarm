@@ -87,7 +87,7 @@ public:
 	int ProcessSMS(int no);
 
 	//Send SMS in few parts
-	int SendSMSBegin(char *number_str);
+	int SendSMSBegin(const char *number_str);
 	void SendSMSAttachText(char *message_str);
 	void SendSMSAttachInt(int);
 	int SendSMSEnd();
@@ -95,6 +95,7 @@ public:
 	//Debug number;
 	void SetDebugNumber(const char*);
 	void ResetDebugNumber();
+	const char* GetDebugNumber();
 
 	//Set Callback
 	void SetIncomeSmsCallback(
