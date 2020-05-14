@@ -466,6 +466,17 @@ void BGsmShield::ProcessIncomingCommand() {
 
 			ProcessSMS(no);
 		}
+	} else if (strstr((char*) p_wbuf, "+CPAS:") == p_wbuf){
+		//call status response
+
+		int status = atoi((char*) (p_wbuf + 5));
+		if(status == 4) {
+			_cell.println("ATH"); //if call in progress, hang up
+		}
+
+		if(status != 0) {
+			_cell.println("AT+CPAS"); //if status different then ready, ask about status again
+		}
 	}
 }
 

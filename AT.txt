@@ -1,0 +1,17 @@
+ATD668195261;OK
+ATHOK
+AT+CCLK?+CCLK: "20/05/14,16:31:51+08"
+
+OK
+AT+CCLK?+CCLK: "20/05/14,16:32:30+08"
+
+OK
+ATD668195261;  		tak sie dzwoni, srednik na koncu
+AT+CPAS			odpytanie o status polaczenia
++CPAS: 3		dzwoni ciagle
++CPAS: 4		odbebra³, wtedy trzeba sie rozlaczyc ATH
+
+zanim sie zadzwoni najlepisz sprawdzic czy CPAS = 0
+AT+CPAS+CPAS: 0
+
+OK
