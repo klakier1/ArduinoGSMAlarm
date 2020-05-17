@@ -13,6 +13,7 @@
 #include <Arduino.h>
 #include "SoftwareSerial.h"
 #include "IntegerQueue.h"
+#include "TimeLib.h"
 
 #define GSM_RX_PIN  		2	//Komunikacja poprzez interfejs szeregowy.
 #define GSM_TX_PIN  		3	//Komunikacja poprzez interfejs szeregowy.
@@ -103,6 +104,8 @@ public:
 					size_t msg_len));
 	void SetIncomeVoiceCallback(void (*callback)(char *num, size_t num_len));
 
+	static time_t GetTime(void);
+	static BGsmShield *s_bgsm;
 	byte comm_buf[COMM_BUF_LEN + 1]; // communication buffer +1 for 0x00 termination
 	byte pending_buf[COMM_BUF_LEN + 1]; // communication buffer +1 for 0x00 termination
 	SoftwareSerial _cell;
@@ -111,6 +114,8 @@ private:
 	void (*incomeVoiceCallback)(char *num, size_t num_len) = NULL;
 	bool (*incomeSmsCallback)(char *num, size_t num_len, char *msg,
 			size_t msg_len) = NULL;
+
+	static time_t ParseTime(byte *tstr);
 
 	char *_debugNumber;
 

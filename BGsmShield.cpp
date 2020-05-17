@@ -7,6 +7,8 @@
 
 #include "BGsmShield.h"
 
+BGsmShield *BGsmShield::s_bgsm = 0;
+
 BGsmShield::BGsmShield() :
 		_cell(GSM_RX_PIN, GSM_TX_PIN) {
 	pinMode(GSM_PWRKEY_PIN, OUTPUT);
@@ -726,4 +728,33 @@ int BGsmShield::ProcessSMS(int no){
 	}
 	return 1;
 
+}
+
+static time_t BGsmShield::ParseTime(byte *tstr) {
+	//+CCLK: "20/05/14,16:32:30+08"
+	tmElements_t te;
+
+	sscanf((const char*)tstr, "+CCLK: \"%2hhu/%2hhu/%2hhu,%2hhu:%2hhu:%2hhu", (uint8_t*) &te.Year,
+			(uint8_t*) &te.Month, (uint8_t*) &te.Day, (uint8_t*) &te.Hour,
+			(uint8_t*) &te.Minute, (uint8_t*) &te.Second);
+	te.Year += 30;
+//	Serial.println(te.Year); Serial.println(te.Month); Serial.println(te.Day);
+//	Serial.println(te.Hour); Serial.println(te.Minute); Serial.println(te.Second);
+	return makeTime(te);
+}
+
+static time_t BGsmShield::GetTime() {
+
+	Serial.println("Time synchronization...");
+	//const char *time = "+CCLK: \"20/05/14,16:31:51+08\"";
+	if(s_bgsm->SendATCmdWaitResp("AT+CCLK?", 1000, 10, "OK", 1) == AT_RESP_OK){
+		Serial.print((char*) s_bgsm->comm_buf);
+		Serial.println("TSync response OK");
+		return ParseTime(s_bgsm->comm_buf);
+
+	}
+
+	Serial.print((char*) s_bgsm->comm_buf);
+	Serial.println("TSync failed");
+	return 0;;
 }

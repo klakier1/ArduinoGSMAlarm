@@ -7,10 +7,6 @@
 #include <TimeLib.h>
 //#include "IntegerQueue.h"
 
-getExternalTime qwe(){
-	return 0;
-}
-
 /*********** Constants ***************************************************************/
 const int sensor1Pin = 8;
 const int sensor2Pin = 9;
@@ -106,11 +102,14 @@ void setup() {
 	bgsm->SetDebugNumber(phonebook.phoneNumbers[0]);
 
 	phonebook.Print();
+
+	BGsmShield::s_bgsm = bgsm;
+	//setSyncProvider(BGsmShield::GetTime);
 }
 
 void loop() {
-	sensor1->Loop();
-	sensor2->Loop();
+	//sensor1->Loop();
+	//sensor2->Loop();
 	bgsm->Loop();
 }
 
