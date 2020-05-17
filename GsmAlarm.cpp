@@ -4,7 +4,12 @@
 #include "BGsmShield.h"
 #include "Phonebook.h"
 #include <string.h>
+#include <TimeLib.h>
 //#include "IntegerQueue.h"
+
+getExternalTime qwe(){
+	return 0;
+}
 
 /*********** Constants ***************************************************************/
 const int sensor1Pin = 8;

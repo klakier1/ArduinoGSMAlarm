@@ -15,3 +15,51 @@ zanim sie zadzwoni najlepisz sprawdzic czy CPAS = 0
 AT+CPAS+CPAS: 0
 
 OK
+
+time_t ParseTime(const char *tstr) {
+	//+CCLK: "20/05/14,16:32:30+08"
+	tmElements_t te;
+
+	sscanf(tstr, "+CCLK: \"%2hhu/%2hhu/%2hhu,%2hhu:%2hhu:%2hhu", (uint8_t*) &te.Year,
+			(uint8_t*) &te.Month, (uint8_t*) &te.Day, (uint8_t*) &te.Hour,
+			(uint8_t*) &te.Minute, (uint8_t*) &te.Second);
+	te.Year += 30;
+//	Serial.println(te.Year); Serial.println(te.Month); Serial.println(te.Day);
+//	Serial.println(te.Hour); Serial.println(te.Minute); Serial.println(te.Second);
+	return makeTime(te);
+}
+
+time_t GetTime() {
+	//const char* time = "[+CCLK: \"]20/05/14,16:32:30+08\"";
+	const char *time = "+CCLK: \"20/05/14,16:31:51+08\"";
+	return ParseTime(time);
+}
+
+
+void setup() {
+	Serial.begin(57600);
+	Serial.println("Start");
+	setSyncProvider(GetTime);
+
+}
+
+void loop() {
+	time_t t_now = now();
+
+	Serial.print(day(t_now));
+	Serial.print(".");
+	Serial.print(month(t_now));
+	Serial.print(".");
+	Serial.print(year(t_now));
+
+	Serial.print(" ");
+
+	Serial.print(hour(t_now));
+	Serial.print(":");
+	Serial.print(minute(t_now));
+	Serial.print(":");
+	Serial.println(second(t_now));
+
+	delay(1000);
+
+}

@@ -451,7 +451,8 @@ void BGsmShield::ProcessIncomingCommand() {
 			}
 			free(response);
 		}
-		/*+CMTI:*/
+
+	/*+CMTI:*/
 	} else if (strstr((char*) p_wbuf, "+CMTI:") == p_wbuf) {
 		//+CMTI: "SM",1
 
@@ -466,10 +467,13 @@ void BGsmShield::ProcessIncomingCommand() {
 
 			ProcessSMS(no);
 		}
+
+	/*+CPAS:*/
 	} else if (strstr((char*) p_wbuf, "+CPAS:") == p_wbuf){
 		//call status response
 
 		int status = atoi((char*) (p_wbuf + 5));
+
 		if(status == 4) {
 			_cell.println("ATH"); //if call in progress, hang up
 		}
