@@ -331,11 +331,11 @@ byte BGsmShield::IsStringReceived(char const *compare_string) {
 		 #endif
 		 */
 #ifdef DEBUG_ON
-		Serial.print("ATT: ");
+		Serial.print(F("ATT: "));
 		Serial.println(compare_string);
-		Serial.print("RIC: ");
+		Serial.print(F("RIC: "));
 		Serial.println((char*) comm_buf);
-		Serial.print("LEN: ");
+		Serial.print(F("LEN: "));
 		Serial.println(comm_buf_len);
 #endif
 		ch = strstr((char*) comm_buf, compare_string);
@@ -357,13 +357,13 @@ byte BGsmShield::IsStringReceived(char const *compare_string) {
 				if ((begin = memchr(ch + 5, ',', 10)) != NULL) {
 					int no = atoi((char*) (begin + 1));
 
-					Serial.print("PENDING SMS: ");
+					Serial.print(F("PENDING SMS: "));
 					Serial.println(no);
 					//add sms to queue
 					_smsQueue << no;
 				}
 			} else {
-				Serial.print("WTF : ");
+				Serial.print(F("WTF : "));
 				Serial.print((char*) comm_buf);
 			}
 			/*#ifdef DEBUG_PRINT
@@ -373,9 +373,9 @@ byte BGsmShield::IsStringReceived(char const *compare_string) {
 		}
 	} else {
 #ifdef DEBUG_ON
-		Serial.print("ATT: ");
+		Serial.print(F("ATT: "));
 		Serial.println(compare_string);
-		Serial.print("RIC: NO STRING RCVD");
+		Serial.print(F("RIC: NO STRING RCVD"));
 #endif
 	}
 
@@ -397,15 +397,15 @@ void BGsmShield::RxInit(uint16_t start_comm_tmout,
 void BGsmShield::Loop() {
 	byte status = WaitResp(1, 10);
 	if (status != RX_TMOUT_ERR) {
-//		Serial.print("S->");
+//		Serial.print(F("S->");
 //		Serial.print((char*)comm_buf);
-//		Serial.print("<-S");
+//		Serial.print(F("<-S");
 		ProcessIncomingCommand();
 	}
 	/* PROCESS PENDING SMS, ON PER LOOP */
 	int no = 0; //container for sms number
 	if(_smsQueue >> no){		//if pop from queue success, process it
-		Serial.print("PROC PENDING SMS: ");
+		Serial.print(F("PROC PENDING SMS: "));
 		Serial.println(no);
 		if(!ProcessSMS(no))
 			_smsQueue << no;	//if SMS no read put it on the end of queue
@@ -462,7 +462,7 @@ void BGsmShield::ProcessIncomingCommand() {
 		if ((begin = memchr(p_wbuf + 5, ',', 10)) != NULL) {
 			int no = atoi((char*) (begin + 1));
 
-			Serial.print("Sms numer: ");
+			Serial.print(F("Sms numer: "));
 			Serial.println(no);
 
 			ProcessSMS(no);
@@ -647,7 +647,7 @@ int BGsmShield::StoreSMS(char *message_str) {
 				return no;
 			}
 		} else {
-			Serial.print("NOK");
+			Serial.print(F("NOK"));
 			Serial.print((char*) comm_buf);
 		}
 	}
@@ -721,7 +721,7 @@ int BGsmShield::ProcessSMS(int no){
 
 	//delete SMS
 	if (!DeleteSms(no)){
-		Serial.println("DELTE SMS ERROR");
+		Serial.println(F("DELTE SMS ERROR"));
 		return 0;
 	}
 	return 1;
@@ -745,17 +745,17 @@ static time_t BGsmShield::ParseTime(byte *tstr) {
 
 time_t GetTime() {
 
-	//Serial.println("TSync Start");
+	Serial.println(F("TSync Start"));
 	//const char *time = "+CCLK: \"20/05/14,16:31:51+08\"";
 	if(BGsmShield::sp_bgsm->SendATCmdWaitResp("AT+CCLK?", 1000, 10, "OK", 1) == AT_RESP_OK){
 		Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
-		//Serial.println("TSync response OK");
-		//return BGsmShield::ParseTime(BGsmShield::sp_bgsm->comm_buf);
+		Serial.println(F("TSync response OK"));
+		return BGsmShield::ParseTime(BGsmShield::sp_bgsm->comm_buf);
 
 	}
 
-	//Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
-	//Serial.println("TSync failed");
+	Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
+	Serial.println(F("TSync failed"));
 	return 0;
 }
 

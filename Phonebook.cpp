@@ -98,18 +98,18 @@ number_status Phonebook::Contains(const char *number) {
 }
 
 void Phonebook::Print(void) {
-	Serial.println(" *** BAZA ***");
+	Serial.println(F(" *** BAZA ***"));
 	for (int i = 0; i < PHONEBOOK_CAPACITY; i++) {
-		Serial.print(" ");
+		Serial.print(F(" "));
 		Serial.print(i);
-		Serial.print(") ");
+		Serial.print(F(") "));
 		if (phoneNumbers[i] != NULL) {
 			Serial.println(phoneNumbers[i]);
 		} else {
-			Serial.println("---");
+			Serial.println(F("---"));
 		}
 	}
-	Serial.println(" ************");
+	Serial.println(F(" ************"));
 }
 
 int Phonebook::GetPosition(const char *number) {

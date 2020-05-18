@@ -11,7 +11,7 @@
 const int sensor1Pin = 8;
 const int sensor2Pin = 9;
 const int ledPin = 13;      // the number of the LED pin
-const char qwe[] PROGMEM = "qweertyjyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyuyrher";
+
 /*********** Global Variables ********************************************************/
 PIRSensor *sensor1;
 PIRSensor *sensor2;
@@ -39,7 +39,7 @@ void errorHandler(String msg = "error");
 BGsmShield *BGsmShield::sp_bgsm;
 void setup() {
 	Serial.begin(57600);
-	Serial.print(qwe);
+
 	sensor1 = new PIRSensor(sensor1Pin, 3.0, sensorCallback);
 	sensor2 = new PIRSensor(sensor2Pin, 3.0, sensorCallback);
 	bgsm = new BGsmShield();
@@ -75,9 +75,9 @@ void setup() {
 			!= bgsm->SendATCmdWaitResp("AT+CMGD=1,4", 2000, 10, "OK", 10))
 		errorHandler("delete sms error");
 
-	Serial.println("Done");
+	Serial.println(F("Done"));
 
-	Serial.print("StoreSMS... ");
+	Serial.print(F("StoreSMS... "));
 
 	if (0 > (smsNumAlaram1 = bgsm->StoreSMS("!  ALARM 1  !")))
 		errorHandler();
@@ -100,7 +100,7 @@ void setup() {
 					"NIE JESTES DODANY DO LISTY UZYTKOWNIKOW")))
 		errorHandler();
 
-	Serial.println("Done");
+	Serial.println(F("Done"));
 
 	bgsm->SetDebugNumber(phonebook.phoneNumbers[0]);
 
@@ -110,23 +110,23 @@ void setup() {
 }
 
 void loop() {
-	//sensor1->Loop();
-	//sensor2->Loop();
+	sensor1->Loop();
+	sensor2->Loop();
 	bgsm->Loop();
 }
 
 void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 	switch (event) {
 	case DetectionStart: {
-		Serial.print("Detection On ");
+		Serial.print(F("Detection On "));
 		Serial.println(sensor->pinNumber);
 		break;
 	}
 	case DetectionStop: {
 		double *time = args;
-		Serial.print("Detection Off ");
+		Serial.print(F("Detection Off "));
 		Serial.print(*time);
-		Serial.print("s  ");
+		Serial.print(F("s  "));
 		Serial.println(sensor->pinNumber);
 		break;
 	}
@@ -140,12 +140,12 @@ void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 					bgsm->SendSMSFromStorage(number, smsNumAlaram2);
 			}
 		}
-		Serial.print("Alarm ");
+		Serial.print(F("Alarm "));
 		Serial.println(sensor->pinNumber);
 		break;
 	}
 	case AlarmStartNotArmed: {
-		Serial.print("NOT ARMED Alarm ");
+		Serial.print(F("NOT ARMED Alarm "));
 		Serial.println(sensor->pinNumber);
 		break;
 	}
@@ -154,17 +154,17 @@ void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 }
 
 void incomingVoiceCallback(char *num, size_t num_len) {
-	Serial.print("Dzwonil: ");
+	Serial.print(F("Dzwonil: "));
 	Serial.println(num);
 	bool test = phonebook.Contains(num);
 	if (test)
-		Serial.println("Jest w bazie");
+		Serial.println(F("Jest w bazie"));
 	else
-		Serial.println("BRAK w bazie");
+		Serial.println(F("BRAK w bazie"));
 }
 
 bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
-	Serial.print("Sms od: ");
+	Serial.print(F("Sms od: "));
 	Serial.println(num);
 	Serial.println(msg);
 	number_status status = phonebook.Contains(num);
@@ -255,7 +255,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 					bgsm->SendSMSAttachText(num);
 					bgsm->SendSMSEnd();
 				} else {
-					Serial.println("Send feedback message error");
+					Serial.println(F("Send feedback message error"));
 				}
 			}
 
@@ -302,12 +302,28 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 					bgsm->SendSMSAttachText(num);
 					bgsm->SendSMSEnd();
 				} else {
-					Serial.println("Send feedback message error");
+					Serial.println(F("Send feedback message error"));
 				}
 			}
 
 			free(storeNumberToDelete);
 
+		} else if (memcmp("Time", msg, 4) == 0) {
+			tmElements_t te;
+			breakTime(now(), te);
+			bgsm->SendSMSBegin(bgsm->GetDebugNumber());
+			bgsm->SendSMSAttachInt(te.Day);
+			bgsm->SendSMSAttachText("/");
+			bgsm->SendSMSAttachInt(te.Month);
+			bgsm->SendSMSAttachText("/");
+			bgsm->SendSMSAttachInt(te.Year);
+			bgsm->SendSMSAttachText(" ");
+			bgsm->SendSMSAttachInt(te.Hour);
+			bgsm->SendSMSAttachText(":");
+			bgsm->SendSMSAttachInt(te.Minute);
+			bgsm->SendSMSAttachText(":");
+			bgsm->SendSMSAttachInt(te.Second);
+			bgsm->SendSMSEnd();
 		} else {
 			return false;
 		}
