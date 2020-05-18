@@ -11,7 +11,7 @@
 const int sensor1Pin = 8;
 const int sensor2Pin = 9;
 const int ledPin = 13;      // the number of the LED pin
-
+const char qwe[] PROGMEM = "qweertyjyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyuyrher";
 /*********** Global Variables ********************************************************/
 PIRSensor *sensor1;
 PIRSensor *sensor2;
@@ -36,16 +36,19 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len);
 void errorHandler(String msg = "error");
 
 /*********** User Code **************************************************************/
+BGsmShield *BGsmShield::sp_bgsm;
 void setup() {
 	Serial.begin(57600);
-
+	Serial.print(qwe);
 	sensor1 = new PIRSensor(sensor1Pin, 3.0, sensorCallback);
 	sensor2 = new PIRSensor(sensor2Pin, 3.0, sensorCallback);
 	bgsm = new BGsmShield();
 	bgsm->SetIncomeVoiceCallback(incomingVoiceCallback);
 	bgsm->SetIncomeSmsCallback(incomingSmsCallback);
 
-	Serial.print("Init GSM... ");
+	Serial.print(F("Init GSM... "));
+
+	BGsmShield::sp_bgsm = bgsm;
 
 	if (!bgsm->switchOn())
 		errorHandler("Uklad GSM nie wlacza sie");
@@ -102,9 +105,8 @@ void setup() {
 	bgsm->SetDebugNumber(phonebook.phoneNumbers[0]);
 
 	phonebook.Print();
-
-	BGsmShield::s_bgsm = bgsm;
-	//setSyncProvider(BGsmShield::GetTime);
+	BGsmShield::sp_bgsm = bgsm;
+	setSyncProvider(GetTime);
 }
 
 void loop() {

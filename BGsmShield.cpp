@@ -7,8 +7,6 @@
 
 #include "BGsmShield.h"
 
-BGsmShield *BGsmShield::s_bgsm = 0;
-
 BGsmShield::BGsmShield() :
 		_cell(GSM_RX_PIN, GSM_TX_PIN) {
 	pinMode(GSM_PWRKEY_PIN, OUTPUT);
@@ -702,7 +700,7 @@ int BGsmShield::ProcessSMS(int no){
 	if (ReadSms(no, &msg, &msg_len, &tel, &tel_len) == 1) {
 		if (incomeSmsCallback != NULL)
 			if(!incomeSmsCallback(tel, tel_len, msg, msg_len)){
-				Serial.print("TRY TO FORWARD :");
+				Serial.print(F("TRY TO FORWARD :"));
 				Serial.println(_debugNumber);
 				//Forward SMS if it isn't processed
 				if(_debugNumber != NULL){
@@ -715,7 +713,7 @@ int BGsmShield::ProcessSMS(int no){
 					SendSMSEnd();
 				}
 			} else {
-				Serial.println("PROCESSING SMS OK");
+				Serial.println(F("PROCESSING SMS OK"));
 			}
 	} else {
 		return 0;
@@ -743,18 +741,21 @@ static time_t BGsmShield::ParseTime(byte *tstr) {
 	return makeTime(te);
 }
 
-static time_t BGsmShield::GetTime() {
+//BGsmShield *BGsmShield::sp_bgsm = nullptr;
 
-	Serial.println("Time synchronization...");
+time_t GetTime() {
+
+	//Serial.println("TSync Start");
 	//const char *time = "+CCLK: \"20/05/14,16:31:51+08\"";
-	if(s_bgsm->SendATCmdWaitResp("AT+CCLK?", 1000, 10, "OK", 1) == AT_RESP_OK){
-		Serial.print((char*) s_bgsm->comm_buf);
-		Serial.println("TSync response OK");
-		return ParseTime(s_bgsm->comm_buf);
+	if(BGsmShield::sp_bgsm->SendATCmdWaitResp("AT+CCLK?", 1000, 10, "OK", 1) == AT_RESP_OK){
+		Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
+		//Serial.println("TSync response OK");
+		//return BGsmShield::ParseTime(BGsmShield::sp_bgsm->comm_buf);
 
 	}
 
-	Serial.print((char*) s_bgsm->comm_buf);
-	Serial.println("TSync failed");
-	return 0;;
+	//Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
+	//Serial.println("TSync failed");
+	return 0;
 }
+
