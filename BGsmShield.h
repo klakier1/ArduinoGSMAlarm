@@ -52,8 +52,6 @@ enum at_resp_enum {
 	AT_RESP_LAST_ITEM
 };
 
-time_t GetTime(void);
-
 class BGsmShield {
 public:
 	BGsmShield();
@@ -110,7 +108,7 @@ public:
 	void SetIncomeVoiceCallback(void (*callback)(char *num, size_t num_len));
 
 	static time_t ParseTime(byte *tstr);
-	//static time_t GetTime(void);
+	static time_t GetTime(void);
 	static BGsmShield *sp_bgsm;
 
 	byte comm_buf[COMM_BUF_LEN + 1]; // communication buffer +1 for 0x00 termination

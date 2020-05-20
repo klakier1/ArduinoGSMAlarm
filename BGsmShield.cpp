@@ -7,6 +7,8 @@
 
 #include "BGsmShield.h"
 
+BGsmShield *BGsmShield::sp_bgsm;
+
 BGsmShield::BGsmShield() :
 		_cell(GSM_RX_PIN, GSM_TX_PIN) {
 	pinMode(GSM_PWRKEY_PIN, OUTPUT);
@@ -64,15 +66,15 @@ uint8_t BGsmShield::switchOff() {
 	return 0;
 }
 
-void BGsmShield::SetDebugNumber(const char * num){
+void BGsmShield::SetDebugNumber(const char * num) {
 	_debugNumber = num;
 }
 
-void BGsmShield::ResetDebugNumber(){
+void BGsmShield::ResetDebugNumber() {
 	_debugNumber = NULL;
 }
 
-const char* BGsmShield::GetDebugNumber(){
+const char* BGsmShield::GetDebugNumber() {
 	return _debugNumber;
 }
 
@@ -333,10 +335,10 @@ void BGsmShield::Loop() {
 	}
 	/* PROCESS PENDING SMS, ON PER LOOP */
 	int no = 0; //container for sms number
-	if(_smsQueue >> no){		//if pop from queue success, process it
+	if (_smsQueue >> no) {		//if pop from queue success, process it
 		Serial.print(F("PROC PENDING SMS: "));
 		Serial.println(no);
-		if(!ProcessSMS(no))
+		if (!ProcessSMS(no))
 			_smsQueue << no;	//if SMS no read put it on the end of queue
 	}
 }
@@ -381,7 +383,7 @@ void BGsmShield::ProcessIncomingCommand() {
 			free(response);
 		}
 
-	/*+CMTI:*/
+		/*+CMTI:*/
 	} else if (strstr((char*) p_wbuf, "+CMTI:") == p_wbuf) {
 		//+CMTI: "SM",1
 
@@ -397,17 +399,17 @@ void BGsmShield::ProcessIncomingCommand() {
 			ProcessSMS(no);
 		}
 
-	/*+CPAS:*/
-	} else if (strstr((char*) p_wbuf, "+CPAS:") == p_wbuf){
+		/*+CPAS:*/
+	} else if (strstr((char*) p_wbuf, "+CPAS:") == p_wbuf) {
 		//call status response
 
 		int status = atoi((char*) (p_wbuf + 5));
 
-		if(status == 4) {
+		if (status == 4) {
 			_cell.println("ATH"); //if call in progress, hang up
 		}
 
-		if(status != 0) {
+		if (status != 0) {
 			_cell.println("AT+CPAS"); //if status different then ready, ask about status again
 		}
 	}
@@ -431,7 +433,7 @@ int BGsmShield::ReadSms(int no, char **text, size_t *text_len, char **tnumber,
 	char *p_work, *p_begin;
 
 	//command to get sms
-	_cell.print("AT+CMGR=");
+	_cell.print(F("AT+CMGR="));
 	_cell.println(no);
 
 	//wait for response
@@ -490,7 +492,7 @@ void BGsmShield::SetIncomeSmsCallback(
 }
 
 int BGsmShield::DeleteSms(int no) {
-	_cell.print("AT+CMGD=");
+	_cell.print(F("AT+CMGD="));
 	_cell.println(no);
 
 	enum at_resp_enum resp = WaitResp(2000, 500, "OK");
@@ -527,7 +529,8 @@ int BGsmShield::SendSMS(char *number_str, const char *message_str) {
 	return -1;
 }
 
-int BGsmShield::SendSMS(char *number_str, const __FlashStringHelper *message_str) {
+int BGsmShield::SendSMS(char *number_str,
+		const __FlashStringHelper *message_str) {
 	byte i;
 	char end[2];
 	end[0] = 0x1a;
@@ -643,7 +646,6 @@ int BGsmShield::StoreSMS(const __FlashStringHelper *message_str) {
 	return -1;
 }
 
-
 int BGsmShield::SendSMSBegin(const char *number_str) {
 	// send  AT+CMGS="number_str"
 	_cell.print(F("AT+CMGS=\""));
@@ -686,23 +688,23 @@ int BGsmShield::SendSMSEnd() {
  * 0 - error, SMS not read and not deleted
  * 1 if SMS read and deleted
  */
-int BGsmShield::ProcessSMS(int no){
+int BGsmShield::ProcessSMS(int no) {
 	//pointers to message and phone number
 	char *msg, *tel;
 	size_t msg_len, tel_len;
 
 	if (ReadSms(no, &msg, &msg_len, &tel, &tel_len) == 1) {
 		if (incomeSmsCallback != NULL)
-			if(!incomeSmsCallback(tel, tel_len, msg, msg_len)){
+			if (!incomeSmsCallback(tel, tel_len, msg, msg_len)) {
 				Serial.print(F("FORWARDING:"));
 				Serial.println(_debugNumber);
 				//Forward SMS if it isn't processed
-				if(_debugNumber != NULL){
+				if (_debugNumber != NULL) {
 					//first orginal SMS
 					SendSMSFromStorage(_debugNumber, no);
 					//second information about sender
 					SendSMSBegin(_debugNumber);
-					SendSMSAttachText("SMS FROM ");
+					SendSMSAttachText(F("SMS FROM "));
 					SendSMSAttachText(tel);
 					SendSMSEnd();
 				}
@@ -714,7 +716,7 @@ int BGsmShield::ProcessSMS(int no){
 	}
 
 	//delete SMS
-	if (!DeleteSms(no)){
+	if (!DeleteSms(no)) {
 		Serial.println(F("DELTE SMS ERROR"));
 		return 0;
 	}
@@ -725,30 +727,35 @@ int BGsmShield::ProcessSMS(int no){
 static time_t BGsmShield::ParseTime(byte *tstr) {
 	//+CCLK: "20/05/14,16:32:30+08"
 	tmElements_t te;
-
-	sscanf((const char*)tstr, "+CCLK: \"%2hhu/%2hhu/%2hhu,%2hhu:%2hhu:%2hhu", (uint8_t*) &te.Year,
-			(uint8_t*) &te.Month, (uint8_t*) &te.Day, (uint8_t*) &te.Hour,
-			(uint8_t*) &te.Minute, (uint8_t*) &te.Second);
-	te.Year += 30;
+	if ((tstr = strstr((char*) tstr, "+CCLK")) != NULL) { // @suppress("Assignment in condition")
+		sscanf((const char*) tstr,
+				"+CCLK: \"%2hhu/%2hhu/%2hhu,%2hhu:%2hhu:%2hhu",
+				(uint8_t*) &te.Year, (uint8_t*) &te.Month, (uint8_t*) &te.Day,
+				(uint8_t*) &te.Hour, (uint8_t*) &te.Minute,
+				(uint8_t*) &te.Second);
+		te.Year += 30;
 //	Serial.println(te.Year); Serial.println(te.Month); Serial.println(te.Day);
 //	Serial.println(te.Hour); Serial.println(te.Minute); Serial.println(te.Second);
-	return makeTime(te);
+		return makeTime(te);
+	} else
+		return 0;
 }
 
 //BGsmShield *BGsmShield::sp_bgsm = nullptr;
 
-time_t GetTime() {
+static time_t BGsmShield::GetTime() {
 
 	Serial.println(F("TSync Start"));
 	//const char *time = "+CCLK: \"20/05/14,16:31:51+08\"";
-	if(BGsmShield::sp_bgsm->SendATCmdWaitResp("AT+CCLK?", 1000, 10, "OK", 1) == AT_RESP_OK){
-		Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
+	if (BGsmShield::sp_bgsm->SendATCmdWaitResp("AT+CCLK?", 1000, 10, "OK", 1)
+			== AT_RESP_OK) {
+		//Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
 		Serial.println(F("TSync OK"));
 		return BGsmShield::ParseTime(BGsmShield::sp_bgsm->comm_buf);
 
 	}
 
-	Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
+	//Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
 	Serial.println(F("TSync Fail"));
 	return 0;
 }

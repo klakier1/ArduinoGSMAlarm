@@ -14,8 +14,8 @@
 	#define PRINT_DEBUG_ALARM(x)  Serial.print(x);
 	#define PRINTLN_DEBUG_ALARM(x)  Serial.println(x);
 #else
-#define PRINT_DEBUG_ALARM(x)
-#define PRINTLN_DEBUG_ALARM(x)
+	#define PRINT_DEBUG_ALARM(x)
+	#define PRINTLN_DEBUG_ALARM(x)
 #endif
 
 /*********** Constants ***************************************************************/
@@ -47,7 +47,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len);
 void errorHandler(const __FlashStringHelper *msg = NULL);
 
 /*********** User Code **************************************************************/
-BGsmShield *BGsmShield::sp_bgsm;
+
 void setup() {
 	Serial.begin(57600);
 
@@ -58,8 +58,6 @@ void setup() {
 	bgsm->SetIncomeSmsCallback(incomingSmsCallback);
 
 	Serial.print(F("Init GSM... "));
-
-	BGsmShield::sp_bgsm = bgsm;
 
 	if (!bgsm->switchOn())
 		errorHandler(F("Uklad GSM nie wlacza sie"));
@@ -104,20 +102,21 @@ void setup() {
 		errorHandler();
 	if (0 > (smsNumError = bgsm->StoreSMS(F("BLAD"))))
 		errorHandler();
-	if (0 > (smsNumFixedMember = bgsm->StoreSMS(F("JESTES STALYM UZYTKOWNIKIEM"))))
+	if (0
+			> (smsNumFixedMember = bgsm->StoreSMS(
+					F("JESTES STALYM UZYTKOWNIKIEM"))))
 		errorHandler();
 	if (0
-			> (smsNumStrangerStart = bgsm->StoreSMS(F(
-					"NIE JESTES DODANY DO LISTY UZYTKOWNIKOW"))))
+			> (smsNumStrangerStart = bgsm->StoreSMS(
+					F("NIE JESTES DODANY DO LISTY UZYTKOWNIKOW"))))
 		errorHandler();
 
 	Serial.println(F("Done"));
 
 	bgsm->SetDebugNumber(phonebook.phoneNumbers[0]);
 
-	phonebook.Print();
 	BGsmShield::sp_bgsm = bgsm;
-	setSyncProvider(GetTime);
+	setSyncProvider(BGsmShield::GetTime);
 }
 
 void loop() {
@@ -129,12 +128,12 @@ void loop() {
 void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 	switch (event) {
 	case DetectionStart: {
-		PRINT_DEBUG_ALARM(F("Detect On ")); PRINTLN_DEBUG_ALARM(sensor->pinNumber);
+		PRINT_DEBUG_ALARM(F("Detect On "));PRINTLN_DEBUG_ALARM(sensor->pinNumber);
 		break;
 	}
 	case DetectionStop: {
 		double *time = args;
-		PRINT_DEBUG_ALARM(F("Detect Off ")); PRINT_DEBUG_ALARM(*time); PRINT_DEBUG_ALARM(F("s  ")); PRINTLN_DEBUG_ALARM(sensor->pinNumber);
+		PRINT_DEBUG_ALARM(F("Detect Off "));PRINT_DEBUG_ALARM(*time);PRINT_DEBUG_ALARM(F("s  "));PRINTLN_DEBUG_ALARM(sensor->pinNumber);
 		break;
 	}
 	case AlarmStart: {
@@ -146,11 +145,11 @@ void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 				else if (sensor == sensor2)
 					bgsm->SendSMSFromStorage(number, smsNumAlaram2);
 			}
-		} PRINT_DEBUG_ALARM(F("Alarm ")); PRINTLN_DEBUG_ALARM(sensor->pinNumber);
+		}PRINT_DEBUG_ALARM(F("Alarm "));PRINTLN_DEBUG_ALARM(sensor->pinNumber);
 		break;
 	}
 	case AlarmStartNotArmed: {
-		PRINT_DEBUG_ALARM(F("NOT ARMED Alarm ")); PRINTLN_DEBUG_ALARM(sensor->pinNumber);
+		PRINT_DEBUG_ALARM(F("NOT ARMED Alarm "));PRINTLN_DEBUG_ALARM(sensor->pinNumber);
 		break;
 	}
 	}
@@ -239,8 +238,8 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 						bgsm->SendSMSAttachText(F("ADDNUM PHONEBOOK RESULT "));
 						bgsm->SendSMSAttachInt(addResult);
 					} else {
-						bgsm->SendSMSAttachText(F(
-								"ADDNUM PHONEBOOK RESULT ERROR"));
+						bgsm->SendSMSAttachText(
+								F("ADDNUM PHONEBOOK RESULT ERROR"));
 					}
 				} else {
 					bgsm->SendSMSAttachText(F("ADDNUM INCORRECT NUM"));
@@ -320,7 +319,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			bgsm->SendSMSAttachText(F("/"));
 			bgsm->SendSMSAttachInt(te.Month);
 			bgsm->SendSMSAttachText(F("/"));
-			bgsm->SendSMSAttachInt(te.Year);
+			bgsm->SendSMSAttachInt(tmYearToCalendar(te.Year));
 			bgsm->SendSMSAttachText(F(" "));
 			bgsm->SendSMSAttachInt(te.Hour);
 			bgsm->SendSMSAttachText(F(":"));
@@ -437,7 +436,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 	}
 	}
 
-	phonebook.Print();
+	//phonebook.Print();
 	return true;
 
 }
