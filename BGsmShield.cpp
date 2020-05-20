@@ -500,7 +500,7 @@ int BGsmShield::DeleteSms(int no) {
 		return 1;
 }
 
-int BGsmShield::SendSMS(char *number_str, char *message_str) {
+int BGsmShield::SendSMS(char *number_str, const char *message_str) {
 	byte i;
 	char end[2];
 	end[0] = 0x1a;
@@ -527,7 +527,7 @@ int BGsmShield::SendSMS(char *number_str, char *message_str) {
 	return -1;
 }
 
-int BGsmShield::SendSMS(char *number_str, __FlashStringHelper *message_str) {
+int BGsmShield::SendSMS(char *number_str, const __FlashStringHelper *message_str) {
 	byte i;
 	char end[2];
 	end[0] = 0x1a;
@@ -577,7 +577,7 @@ int BGsmShield::SendSMSFromStorage(char *number_str, int smsNum) {
 	return -1;
 }
 
-int BGsmShield::StoreSMS(char *message_str) {
+int BGsmShield::StoreSMS(const char *message_str) {
 	byte i;
 	char end[2];
 	end[0] = 0x1a;
@@ -610,6 +610,40 @@ int BGsmShield::StoreSMS(char *message_str) {
 	return -1;
 }
 
+int BGsmShield::StoreSMS(const __FlashStringHelper *message_str) {
+	byte i;
+	char end[2];
+	end[0] = 0x1a;
+	end[1] = '\0';
+
+	// try to store SMS 3 times in case there is some problem
+	for (i = 0; i < 3; i++) {
+
+		// store command  AT+CMGW
+		_cell.println(F("AT+CMGW"));
+
+		if (RX_FINISHED_STR_RECV == WaitResp(2000, 10, ">")) {
+
+			// store SMS text
+			_cell.print(message_str);
+			_cell.println(end);
+			if (RX_FINISHED_STR_RECV == WaitResp(7000, 10, "OK")) {
+				char *p_wbuf = comm_buf;
+
+				while (*(++p_wbuf) > 0x39 || *p_wbuf < 0x30) {
+				};
+				int no = atoi(p_wbuf - 1);
+				return no;
+			}
+		} else {
+			Serial.print(F("NOK"));
+			Serial.print((char*) comm_buf);
+		}
+	}
+	return -1;
+}
+
+
 int BGsmShield::SendSMSBegin(const char *number_str) {
 	// send  AT+CMGS="number_str"
 	_cell.print(F("AT+CMGS=\""));
@@ -626,9 +660,9 @@ void BGsmShield::SendSMSAttachText(char *message_str) {
 	_cell.print(message_str);
 }
 
-//void BGsmShield::SendSMSAttachText(__FlashStringHelper *message_str) {
-//	_cell.print(message_str);
-//}
+void BGsmShield::SendSMSAttachText(const __FlashStringHelper *message_str) {
+	_cell.print(message_str);
+}
 
 void BGsmShield::SendSMSAttachInt(int val) {
 	_cell.print(val);

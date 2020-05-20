@@ -90,25 +90,25 @@ void setup() {
 
 	Serial.print(F("StoreSMS... "));
 
-	if (0 > (smsNumAlaram1 = bgsm->StoreSMS("!  ALARM 1  !")))
+	if (0 > (smsNumAlaram1 = bgsm->StoreSMS(F("!  ALARM 1  !"))))
 		errorHandler();
-	if (0 > (smsNumAlaram2 = bgsm->StoreSMS("!  ALARM 2  !")))
+	if (0 > (smsNumAlaram2 = bgsm->StoreSMS(F("!  ALARM 2  !"))))
 		errorHandler();
-	if (0 > (smsNumArmed = bgsm->StoreSMS("UZBROJONY")))
+	if (0 > (smsNumArmed = bgsm->StoreSMS(F("UZBROJONY"))))
 		errorHandler();
-	if (0 > (smsNumDisarmed = bgsm->StoreSMS("ROZBROJONY")))
+	if (0 > (smsNumDisarmed = bgsm->StoreSMS(F("ROZBROJONY"))))
 		errorHandler();
-	if (0 > (smsNumMemberAdd = bgsm->StoreSMS("DODANO")))
+	if (0 > (smsNumMemberAdd = bgsm->StoreSMS(F("DODANO"))))
 		errorHandler();
-	if (0 > (smsNumMemberDelete = bgsm->StoreSMS("USUNIETO")))
+	if (0 > (smsNumMemberDelete = bgsm->StoreSMS(F("USUNIETO"))))
 		errorHandler();
-	if (0 > (smsNumError = bgsm->StoreSMS("BLAD")))
+	if (0 > (smsNumError = bgsm->StoreSMS(F("BLAD"))))
 		errorHandler();
-	if (0 > (smsNumFixedMember = bgsm->StoreSMS("JESTES STALYM UZYTKOWNIKIEM")))
+	if (0 > (smsNumFixedMember = bgsm->StoreSMS(F("JESTES STALYM UZYTKOWNIKIEM"))))
 		errorHandler();
 	if (0
-			> (smsNumStrangerStart = bgsm->StoreSMS(
-					"NIE JESTES DODANY DO LISTY UZYTKOWNIKOW")))
+			> (smsNumStrangerStart = bgsm->StoreSMS(F(
+					"NIE JESTES DODANY DO LISTY UZYTKOWNIKOW"))))
 		errorHandler();
 
 	Serial.println(F("Done"));
@@ -186,27 +186,27 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			if (bgsm->SendSMSBegin(num)) {
 				//armed or disarmed
 				if (sensor1->IsArmed() && sensor2->IsArmed())
-					bgsm->SendSMSAttachText("UZBROJONY");
+					bgsm->SendSMSAttachText(F("UZBROJONY"));
 				else
-					bgsm->SendSMSAttachText("ROZBROJONY");
+					bgsm->SendSMSAttachText(F("ROZBROJONY"));
 
-				bgsm->SendSMSAttachText("\n");
+				bgsm->SendSMSAttachText(F("\n"));
 
 				//list of members
 				for (int i = 0; i < PHONEBOOK_CAPACITY; i++) {
 					bgsm->SendSMSAttachInt(i);
-					bgsm->SendSMSAttachText(") ");
+					bgsm->SendSMSAttachText(F(") "));
 					if (phonebook.phoneNumbers[i] != NULL) {
 						bgsm->SendSMSAttachText(phonebook.phoneNumbers[i]);
 					} else {
-						bgsm->SendSMSAttachText("-------");
+						bgsm->SendSMSAttachText(F("-------"));
 					}
-					bgsm->SendSMSAttachText("\n");
+					bgsm->SendSMSAttachText(F("\n"));
 				}
 				//length of queue
-				bgsm->SendSMSAttachText("QUEUE:");
+				bgsm->SendSMSAttachText(F("QUEUE:"));
 				bgsm->SendSMSAttachInt(bgsm->_smsQueue.Size());
-				bgsm->SendSMSAttachText("\n");
+				bgsm->SendSMSAttachText(F("\n"));
 				//send
 				bgsm->SendSMSEnd();
 			}
@@ -236,17 +236,17 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 
 				if (isCorrectNumber) {
 					if ((addResult = phonebook.Add(msg + 7)) != 0) {
-						bgsm->SendSMSAttachText("ADDNUM PHONEBOOK RESULT ");
+						bgsm->SendSMSAttachText(F("ADDNUM PHONEBOOK RESULT "));
 						bgsm->SendSMSAttachInt(addResult);
 					} else {
-						bgsm->SendSMSAttachText(
-								"ADDNUM PHONEBOOK RESULT ERROR");
+						bgsm->SendSMSAttachText(F(
+								"ADDNUM PHONEBOOK RESULT ERROR"));
 					}
 				} else {
-					bgsm->SendSMSAttachText("ADDNUM INCORRECT NUM");
+					bgsm->SendSMSAttachText(F("ADDNUM INCORRECT NUM"));
 				}
 			} else {
-				bgsm->SendSMSAttachText("ADDNUM WRONG LENGTH");
+				bgsm->SendSMSAttachText(F("ADDNUM WRONG LENGTH"));
 			}
 
 			bgsm->SendSMSEnd();
@@ -255,7 +255,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			if (addResult) {
 				Serial.print(phonebook.phoneNumbers[addResult]);
 				if (bgsm->SendSMSBegin(phonebook.phoneNumbers[addResult])) {
-					bgsm->SendSMSAttachText("DODANY PRZEZ ");
+					bgsm->SendSMSAttachText(F("DODANY PRZEZ "));
 					bgsm->SendSMSAttachText(num);
 					bgsm->SendSMSEnd();
 				} else {
@@ -271,7 +271,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			storeNumberToDelete[PHONEBOOK_NUMBER_LEN] = NULL;
 
 			bgsm->SendSMSBegin(num);
-			bgsm->SendSMSAttachText("DELNUM ");
+			bgsm->SendSMSAttachText(F("DELNUM "));
 
 			int numToDelete = atoi(msg + 7);
 			if (numToDelete >= PHONEBOOK_FIXED_NUMBERS_COUNT
@@ -284,16 +284,16 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 							phonebook.phoneNumbers[numToDelete]);
 
 					if (deleteResult = phonebook.Delete(numToDelete)) { // @suppress("Assignment in condition")
-						bgsm->SendSMSAttachText(" OK");
+						bgsm->SendSMSAttachText(F(" OK"));
 					} else {
-						bgsm->SendSMSAttachText(" ERROR");
+						bgsm->SendSMSAttachText(F(" ERROR"));
 					}
 
 				} else {
-					bgsm->SendSMSAttachText("POSITION EMPTY");
+					bgsm->SendSMSAttachText(F("POSITION EMPTY"));
 				}
 			} else {
-				bgsm->SendSMSAttachText("POSITION ERROR");
+				bgsm->SendSMSAttachText(F("POSITION ERROR"));
 			}
 
 			bgsm->SendSMSEnd();
@@ -302,7 +302,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			if (deleteResult) {
 				Serial.print(storeNumberToDelete);
 				if (bgsm->SendSMSBegin(storeNumberToDelete)) {
-					bgsm->SendSMSAttachText("USUNIETY PRZEZ ");
+					bgsm->SendSMSAttachText(F("USUNIETY PRZEZ "));
 					bgsm->SendSMSAttachText(num);
 					bgsm->SendSMSEnd();
 				} else {
@@ -317,15 +317,15 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			breakTime(now(), te);
 			bgsm->SendSMSBegin(bgsm->GetDebugNumber());
 			bgsm->SendSMSAttachInt(te.Day);
-			bgsm->SendSMSAttachText("/");
+			bgsm->SendSMSAttachText(F("/"));
 			bgsm->SendSMSAttachInt(te.Month);
-			bgsm->SendSMSAttachText("/");
+			bgsm->SendSMSAttachText(F("/"));
 			bgsm->SendSMSAttachInt(te.Year);
-			bgsm->SendSMSAttachText(" ");
+			bgsm->SendSMSAttachText(F(" "));
 			bgsm->SendSMSAttachInt(te.Hour);
-			bgsm->SendSMSAttachText(":");
+			bgsm->SendSMSAttachText(F(":"));
 			bgsm->SendSMSAttachInt(te.Minute);
-			bgsm->SendSMSAttachText(":");
+			bgsm->SendSMSAttachText(F(":"));
 			bgsm->SendSMSAttachInt(te.Second);
 			bgsm->SendSMSEnd();
 		} else {
@@ -343,14 +343,14 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 				bgsm->SendSMSFromStorage(num, smsNumMemberDelete);
 
 				bgsm->SendSMSBegin(bgsm->GetDebugNumber());
-				bgsm->SendSMSAttachText("DELETE OK ");
+				bgsm->SendSMSAttachText(F("DELETE OK "));
 				bgsm->SendSMSAttachText(num);
 				bgsm->SendSMSEnd();
 			} else {
 				bgsm->SendSMSFromStorage(num, smsNumError);
 
 				bgsm->SendSMSBegin(bgsm->GetDebugNumber());
-				bgsm->SendSMSAttachText("DELETE ERROR ");
+				bgsm->SendSMSAttachText(F("DELETE ERROR "));
 				bgsm->SendSMSAttachText(num);
 				bgsm->SendSMSEnd();
 			}
@@ -361,7 +361,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			sensor2->Arm(true);
 
 			bgsm->SendSMSBegin(bgsm->GetDebugNumber());
-			bgsm->SendSMSAttachText("ARMED BY ");
+			bgsm->SendSMSAttachText(F("ARMED BY "));
 			bgsm->SendSMSAttachText(num);
 			bgsm->SendSMSEnd();
 
@@ -371,7 +371,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			sensor2->Arm(false);
 
 			bgsm->SendSMSBegin(bgsm->GetDebugNumber());
-			bgsm->SendSMSAttachText("DISARMED BY ");
+			bgsm->SendSMSAttachText(F("DISARMED BY "));
 			bgsm->SendSMSAttachText(num);
 			bgsm->SendSMSEnd();
 
@@ -379,22 +379,22 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			if (bgsm->SendSMSBegin(num)) {
 				//armed or disarmed
 				if (sensor1->IsArmed() && sensor2->IsArmed())
-					bgsm->SendSMSAttachText("UZBROJONY");
+					bgsm->SendSMSAttachText(F("UZBROJONY"));
 				else
-					bgsm->SendSMSAttachText("ROZBROJONY");
+					bgsm->SendSMSAttachText(F("ROZBROJONY"));
 
-				bgsm->SendSMSAttachText("\n");
+				bgsm->SendSMSAttachText(F("\n"));
 
 				//list of members
 				for (int i = 0; i < PHONEBOOK_CAPACITY; i++) {
 					bgsm->SendSMSAttachInt(i);
-					bgsm->SendSMSAttachText(") ");
+					bgsm->SendSMSAttachText(F(") "));
 					if (phonebook.phoneNumbers[i] != NULL) {
 						bgsm->SendSMSAttachText(phonebook.phoneNumbers[i]);
 					} else {
-						bgsm->SendSMSAttachText("-------");
+						bgsm->SendSMSAttachText(F("-------"));
 					}
-					bgsm->SendSMSAttachText("\n");
+					bgsm->SendSMSAttachText(F("\n"));
 				}
 				//send
 				bgsm->SendSMSEnd();
@@ -413,14 +413,14 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 				bgsm->SendSMSFromStorage(num, smsNumMemberAdd);
 
 				bgsm->SendSMSBegin(bgsm->GetDebugNumber());
-				bgsm->SendSMSAttachText("ADD REQ OK ");
+				bgsm->SendSMSAttachText(F("ADD REQ OK "));
 				bgsm->SendSMSAttachText(num);
 				bgsm->SendSMSEnd();
 			} else {
 				bgsm->SendSMSFromStorage(num, smsNumError);
 
 				bgsm->SendSMSBegin(bgsm->GetDebugNumber());
-				bgsm->SendSMSAttachText("ADD REQ ERROR ");
+				bgsm->SendSMSAttachText(F("ADD REQ ERROR "));
 				bgsm->SendSMSAttachText(num);
 				bgsm->SendSMSEnd();
 			}
