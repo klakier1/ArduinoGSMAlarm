@@ -7,6 +7,17 @@
 #include <TimeLib.h>
 //#include "IntegerQueue.h"
 
+/*********** Macros and defines ******************************************************/
+#define DEBUG_ALARM 	0
+
+#if DEBUG_ALARM
+	#define PRINT_DEBUG_ALARM(x)  Serial.print(x);
+	#define PRINTLN_DEBUG_ALARM(x)  Serial.println(x);
+#else
+#define PRINT_DEBUG_ALARM(x)
+#define PRINTLN_DEBUG_ALARM(x)
+#endif
+
 /*********** Constants ***************************************************************/
 const int sensor1Pin = 8;
 const int sensor2Pin = 9;
@@ -33,7 +44,7 @@ int smsNumStrangerStart;  //jak ktos nie dodany wysle start
 void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args);
 void incomingVoiceCallback(char *num, size_t num_len);
 bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len);
-void errorHandler(String msg = "error");
+void errorHandler(const __FlashStringHelper *msg = NULL);
 
 /*********** User Code **************************************************************/
 BGsmShield *BGsmShield::sp_bgsm;
@@ -51,29 +62,29 @@ void setup() {
 	BGsmShield::sp_bgsm = bgsm;
 
 	if (!bgsm->switchOn())
-		errorHandler("Uklad GSM nie wlacza sie");
+		errorHandler(F("Uklad GSM nie wlacza sie"));
 
 	if (AT_RESP_OK != bgsm->SendATCmdWaitResp("AT", 2000, 10, "OK", 3))
-		errorHandler("Brak odpowiedzi na test komunikacji");
+		errorHandler(F("Brak odpowiedzi BGSM"));
 
 	//Wy³acz echo
 	if (AT_RESP_OK != bgsm->SendATCmdWaitResp("ATE0", 2000, 10, "OK", 3))
-		errorHandler("Echo off error");
+		errorHandler(F("Echo off error"));
 
 	//Wpisz PIN
 //	if (AT_RESP_OK != bgsm->SendATCmdWaitResp("AT+CPIN=\"5007\"", 2000, 1000, "OK", 1))
-//		errorHandler("Blad PIN NOK");
+//		errorHandler(F("Blad PIN NOK");
 
 	//Tryb tekstowy
 	if (AT_RESP_OK != bgsm->SendATCmdWaitResp("AT+CMGF=1", 2000, 10, "OK", 1))
-		errorHandler("text mode error");
+		errorHandler(F("Text mode error"));
 
 	delay(1000);
 
 	//Usun wszystkie SMS
 	if (AT_RESP_OK
 			!= bgsm->SendATCmdWaitResp("AT+CMGD=1,4", 2000, 10, "OK", 10))
-		errorHandler("delete sms error");
+		errorHandler(F("Del sms error"));
 
 	Serial.println(F("Done"));
 
@@ -118,16 +129,12 @@ void loop() {
 void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 	switch (event) {
 	case DetectionStart: {
-		Serial.print(F("Detection On "));
-		Serial.println(sensor->pinNumber);
+		PRINT_DEBUG_ALARM(F("Detect On ")); PRINTLN_DEBUG_ALARM(sensor->pinNumber);
 		break;
 	}
 	case DetectionStop: {
 		double *time = args;
-		Serial.print(F("Detection Off "));
-		Serial.print(*time);
-		Serial.print(F("s  "));
-		Serial.println(sensor->pinNumber);
+		PRINT_DEBUG_ALARM(F("Detect Off ")); PRINT_DEBUG_ALARM(*time); PRINT_DEBUG_ALARM(F("s  ")); PRINTLN_DEBUG_ALARM(sensor->pinNumber);
 		break;
 	}
 	case AlarmStart: {
@@ -139,14 +146,11 @@ void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 				else if (sensor == sensor2)
 					bgsm->SendSMSFromStorage(number, smsNumAlaram2);
 			}
-		}
-		Serial.print(F("Alarm "));
-		Serial.println(sensor->pinNumber);
+		} PRINT_DEBUG_ALARM(F("Alarm ")); PRINTLN_DEBUG_ALARM(sensor->pinNumber);
 		break;
 	}
 	case AlarmStartNotArmed: {
-		Serial.print(F("NOT ARMED Alarm "));
-		Serial.println(sensor->pinNumber);
+		PRINT_DEBUG_ALARM(F("NOT ARMED Alarm ")); PRINTLN_DEBUG_ALARM(sensor->pinNumber);
 		break;
 	}
 	}
@@ -262,7 +266,7 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 		} else if (memcmp("DelNum ", msg, 7) == 0) {
 
 			bool deleteResult = false;
-			char* storeNumberToDelete = (char*) malloc(
+			char *storeNumberToDelete = (char*) malloc(
 			PHONEBOOK_NUMBER_LEN + 1);
 			storeNumberToDelete[PHONEBOOK_NUMBER_LEN] = NULL;
 
@@ -438,9 +442,12 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 
 }
 
-void errorHandler(String msg) {
+void errorHandler(const __FlashStringHelper *msg) {
 	while (1) {
-		Serial.println(msg);
+		if (msg)
+			Serial.println(msg);
+		else
+			Serial.println(F("Unknown error"));
 		digitalRead(ledPin) ?
 				digitalWrite(ledPin, LOW) : digitalWrite(ledPin, HIGH);
 		delay(1000);

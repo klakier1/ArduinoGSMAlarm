@@ -205,26 +205,10 @@ byte BGsmShield::IsRxFinished(void) {
 		// Reception is not started yet - check tmout
 		if (!_cell.available()) {
 			// still no character received => check timeout
-			/*
-			 #ifdef DEBUG_GSMRX
-
-			 DebugPrint("\r\nDEBUG: reception timeout", 0);
-			 Serial.print((unsigned long)(millis() - prev_time));
-			 DebugPrint("\r\nDEBUG: start_reception_tmout\r\n", 0);
-			 Serial.print(start_reception_tmout);
-
-
-			 #endif
-			 */
 			if ((unsigned long) (millis() - prev_time)
 					>= start_reception_tmout) {
 				// timeout elapsed => GSM module didn't start with response
 				// so communication is takes as finished
-				/*
-				 #ifdef DEBUG_GSMRX
-				 DebugPrint("\r\nDEBUG: RECEPTION TIMEOUT", 0);
-				 #endif
-				 */
 				comm_buf[comm_buf_len] = 0x00;
 				ret_val = RX_TMOUT_ERR;
 			}
@@ -274,28 +258,10 @@ byte BGsmShield::IsRxFinished(void) {
 		}
 
 		// finally check the inter-character timeout
-		/*
-		 #ifdef DEBUG_GSMRX
-
-		 DebugPrint("\r\nDEBUG: intercharacter", 0);
-		 <			Serial.print((unsigned long)(millis() - prev_time));
-		 DebugPrint("\r\nDEBUG: interchar_tmout\r\n", 0);
-		 Serial.print(interchar_tmout);
-
-
-		 #endif
-		 */
 		if ((unsigned long) (millis() - prev_time) >= interchar_tmout) {
 			// timeout between received character was reached
 			// reception is finished
 			// ---------------------------------------------
-
-			/*
-			 #ifdef DEBUG_GSMRX
-
-			 DebugPrint("\r\nDEBUG: OVER INTER TIMEOUT", 0);
-			 #endif
-			 */
 			comm_buf[comm_buf_len] = 0x00;  // for sure finish string again
 											// but it is not necessary
 			ret_val = RX_FINISHED;
@@ -318,33 +284,9 @@ byte BGsmShield::IsStringReceived(char const *compare_string) {
 	byte ret_val = 0;
 
 	if (comm_buf_len) {
-		/*
-		 #ifdef DEBUG_GSMRX
-		 DebugPrint("DEBUG: Compare the string: \r\n", 0);
-		 for (int i=0; i<comm_buf_len; i++){
-		 Serial.print(byte(comm_buf[i]));
-		 }
-
-		 DebugPrint("\r\nDEBUG: with the string: \r\n", 0);
-		 Serial.print(compare_string);
-		 DebugPrint("\r\n", 0);
-		 #endif
-		 */
-#ifdef DEBUG_ON
-		Serial.print(F("ATT: "));
-		Serial.println(compare_string);
-		Serial.print(F("RIC: "));
-		Serial.println((char*) comm_buf);
-		Serial.print(F("LEN: "));
-		Serial.println(comm_buf_len);
-#endif
 		ch = strstr((char*) comm_buf, compare_string);
 		if (ch != NULL) {
 			ret_val = 1;
-			/*#ifdef DEBUG_PRINT
-			 DebugPrint("\r\nDEBUG: expected string was received\r\n", 0);
-			 #endif
-			 */
 		} else {
 			//check for pending SMS
 			ch = strstr((char*) comm_buf, "+CMTI:");
@@ -363,20 +305,10 @@ byte BGsmShield::IsStringReceived(char const *compare_string) {
 					_smsQueue << no;
 				}
 			} else {
-				Serial.print(F("WTF : "));
+				Serial.print(F("WTF: "));
 				Serial.print((char*) comm_buf);
 			}
-			/*#ifdef DEBUG_PRINT
-			 DebugPrint("\r\nDEBUG: expected string was NOT received\r\n", 0);
-			 #endif
-			 */
 		}
-	} else {
-#ifdef DEBUG_ON
-		Serial.print(F("ATT: "));
-		Serial.println(compare_string);
-		Serial.print(F("RIC: NO STRING RCVD"));
-#endif
 	}
 
 	return (ret_val);
@@ -397,9 +329,6 @@ void BGsmShield::RxInit(uint16_t start_comm_tmout,
 void BGsmShield::Loop() {
 	byte status = WaitResp(1, 10);
 	if (status != RX_TMOUT_ERR) {
-//		Serial.print(F("S->");
-//		Serial.print((char*)comm_buf);
-//		Serial.print(F("<-S");
 		ProcessIncomingCommand();
 	}
 	/* PROCESS PENDING SMS, ON PER LOOP */
@@ -598,6 +527,33 @@ int BGsmShield::SendSMS(char *number_str, char *message_str) {
 	return -1;
 }
 
+int BGsmShield::SendSMS(char *number_str, __FlashStringHelper *message_str) {
+	byte i;
+	char end[2];
+	end[0] = 0x1a;
+	end[1] = '\0';
+
+	// try to send SMS 3 times in case there is some problem
+	for (i = 0; i < 3; i++) {
+
+		// send  AT+CMGS="number_str"
+		_cell.print(F("AT+CMGS=\""));
+		_cell.print(number_str);
+		_cell.println("\"");
+
+		if (RX_FINISHED_STR_RECV == WaitResp(2000, 10, ">")) {
+
+			// send SMS text
+			_cell.print(message_str);
+			_cell.println(end);
+			if (RX_FINISHED_STR_RECV == WaitResp(7000, 10, "+CMGS"))
+				// SMS was send correctly
+				return 1;
+		}
+	}
+	return -1;
+}
+
 int BGsmShield::SendSMSFromStorage(char *number_str, int smsNum) {
 	byte i;
 	char end[2];
@@ -670,6 +626,10 @@ void BGsmShield::SendSMSAttachText(char *message_str) {
 	_cell.print(message_str);
 }
 
+//void BGsmShield::SendSMSAttachText(__FlashStringHelper *message_str) {
+//	_cell.print(message_str);
+//}
+
 void BGsmShield::SendSMSAttachInt(int val) {
 	_cell.print(val);
 }
@@ -700,7 +660,7 @@ int BGsmShield::ProcessSMS(int no){
 	if (ReadSms(no, &msg, &msg_len, &tel, &tel_len) == 1) {
 		if (incomeSmsCallback != NULL)
 			if(!incomeSmsCallback(tel, tel_len, msg, msg_len)){
-				Serial.print(F("TRY TO FORWARD :"));
+				Serial.print(F("FORWARDING:"));
 				Serial.println(_debugNumber);
 				//Forward SMS if it isn't processed
 				if(_debugNumber != NULL){
@@ -749,13 +709,13 @@ time_t GetTime() {
 	//const char *time = "+CCLK: \"20/05/14,16:31:51+08\"";
 	if(BGsmShield::sp_bgsm->SendATCmdWaitResp("AT+CCLK?", 1000, 10, "OK", 1) == AT_RESP_OK){
 		Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
-		Serial.println(F("TSync response OK"));
+		Serial.println(F("TSync OK"));
 		return BGsmShield::ParseTime(BGsmShield::sp_bgsm->comm_buf);
 
 	}
 
 	Serial.print((char*) BGsmShield::sp_bgsm->comm_buf);
-	Serial.println(F("TSync failed"));
+	Serial.println(F("TSync Fail"));
 	return 0;
 }
 

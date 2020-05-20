@@ -85,6 +85,7 @@ public:
 
 	int DeleteSms(int no);
 	int SendSMS(char *number_str, char *message_str);
+	int SendSMS(char *number_str, __FlashStringHelper *message_str);
 	int SendSMSFromStorage(char *number_str, int smsNum);
 	int StoreSMS(char *message_str);
 	int ProcessSMS(int no);
@@ -92,6 +93,7 @@ public:
 	//Send SMS in few parts
 	int SendSMSBegin(const char *number_str);
 	void SendSMSAttachText(char *message_str);
+	//void SendSMSAttachText(__FlashStringHelper *message_str);
 	void SendSMSAttachInt(int);
 	int SendSMSEnd();
 
