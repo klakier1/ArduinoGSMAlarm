@@ -96,6 +96,9 @@ public:
 	void SendSMSAttachInt(int);
 	int SendSMSEnd();
 
+	//Make call
+	void MakeCall(const char *number_str);
+
 	//Debug number;
 	void SetDebugNumber(const char*);
 	void ResetDebugNumber();
@@ -107,6 +110,7 @@ public:
 					size_t msg_len));
 	void SetIncomeVoiceCallback(void (*callback)(char *num, size_t num_len));
 
+	//Time functions
 	static time_t ParseTime(byte *tstr);
 	static time_t GetTime(void);
 	static BGsmShield *sp_bgsm;
@@ -137,6 +141,8 @@ private:
 	uint16_t start_reception_tmout; // max tmout for starting reception
 	uint16_t interchar_tmout;       // previous time in msec.
 	unsigned long prev_time;        // previous time in msec.
+
+	volatile bool _call_in_prog;
 };
 
 #endif /* BGSMSHIELD_H_ */

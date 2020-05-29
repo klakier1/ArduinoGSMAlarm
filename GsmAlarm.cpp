@@ -11,11 +11,11 @@
 #define DEBUG_ALARM 	0
 
 #if DEBUG_ALARM
-	#define PRINT_DEBUG_ALARM(x)  Serial.print(x);
-	#define PRINTLN_DEBUG_ALARM(x)  Serial.println(x);
+#define PRINT_DEBUG_ALARM(x)  Serial.print(x);
+#define PRINTLN_DEBUG_ALARM(x)  Serial.println(x);
 #else
-	#define PRINT_DEBUG_ALARM(x)
-	#define PRINTLN_DEBUG_ALARM(x)
+#define PRINT_DEBUG_ALARM(x)
+#define PRINTLN_DEBUG_ALARM(x)
 #endif
 
 /*********** Constants ***************************************************************/
@@ -327,6 +327,10 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			bgsm->SendSMSAttachText(F(":"));
 			bgsm->SendSMSAttachInt(te.Second);
 			bgsm->SendSMSEnd();
+		} else if (memcmp("Call", msg, 4) == 0) {
+
+			bgsm->MakeCall(bgsm->GetDebugNumber());
+
 		} else {
 			return false;
 		}

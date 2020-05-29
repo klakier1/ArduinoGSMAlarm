@@ -7,10 +7,12 @@
 
 #include "BGsmShield.h"
 
+//static instance of bgsm, used for time synchronization
+//has to be initialized by main program
 BGsmShield *BGsmShield::sp_bgsm;
 
 BGsmShield::BGsmShield() :
-		_cell(GSM_RX_PIN, GSM_TX_PIN) {
+		_cell(GSM_RX_PIN, GSM_TX_PIN), _call_in_prog(false) {
 	pinMode(GSM_PWRKEY_PIN, OUTPUT);
 	pinMode(GSM_RESET_PIN, OUTPUT);
 	SetPowerKeyPin(HIGH);
@@ -329,6 +331,11 @@ void BGsmShield::RxInit(uint16_t start_comm_tmout,
 }
 
 void BGsmShield::Loop() {
+	//TODO
+//	if (this->_call_in_prog){
+//		_cell.println(F("AT+CPAS"));
+//		delay(100);
+//	}
 	byte status = WaitResp(1, 10);
 	if (status != RX_TMOUT_ERR) {
 		ProcessIncomingCommand();
@@ -348,6 +355,9 @@ void BGsmShield::ProcessIncomingCommand() {
 	byte wbuf_len = 0;
 	char ret;
 	TrimWhiteSpacesFront(&p_wbuf, &wbuf_len);
+
+//	Serial.print(F("INC_COMM "));
+//	Serial.print((const char*) p_wbuf);
 
 	/*RING*/
 	if (strstr((char*) p_wbuf, "RING") == p_wbuf) {
@@ -403,14 +413,15 @@ void BGsmShield::ProcessIncomingCommand() {
 	} else if (strstr((char*) p_wbuf, "+CPAS:") == p_wbuf) {
 		//call status response
 
-		int status = atoi((char*) (p_wbuf + 5));
-
+		int status = atoi((char*) (p_wbuf + 6));
+		Serial.print(F("CALL STATUS RESPONSE "));
+		Serial.println(status);
 		if (status == 4) {
-			_cell.println("ATH"); //if call in progress, hang up
-		}
+//			Serial.println(F("REJECT"));
+			SendATCmdWaitResp("ATH", 500, 20, "OK", 5); //if call in progress, hang up
 
-		if (status != 0) {
-			_cell.println("AT+CPAS"); //if status different then ready, ask about status again
+		} else if (status == 0) {
+			_call_in_prog = false;
 		}
 	}
 }
@@ -684,6 +695,7 @@ int BGsmShield::SendSMSEnd() {
 }
 
 /*
+ * ProcessSMS
  * return:
  * 0 - error, SMS not read and not deleted
  * 1 if SMS read and deleted
@@ -741,8 +753,6 @@ static time_t BGsmShield::ParseTime(byte *tstr) {
 		return 0;
 }
 
-//BGsmShield *BGsmShield::sp_bgsm = nullptr;
-
 static time_t BGsmShield::GetTime() {
 
 	Serial.println(F("TSync Start"));
@@ -760,3 +770,11 @@ static time_t BGsmShield::GetTime() {
 	return 0;
 }
 
+void BGsmShield::MakeCall(const char *number_str) {
+	Serial.println(F("Calling..."));
+	_cell.print(F("ATD"));
+	_cell.print(number_str);
+	_cell.println(F(";"));
+	WaitResp(100, 1, "OK");
+	this->_call_in_prog = true; // check status
+}
