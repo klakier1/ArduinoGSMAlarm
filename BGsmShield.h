@@ -143,6 +143,7 @@ private:
 	unsigned long prev_time;        // previous time in msec.
 
 	volatile bool _call_in_prog;
+	time_t lastTime = 0;
 };
 
 #endif /* BGSMSHIELD_H_ */

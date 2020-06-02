@@ -6,6 +6,7 @@
  */
 
 #include "BGsmShield.h"
+#include <TimeLib.h>
 
 //static instance of bgsm, used for time synchronization
 //has to be initialized by main program
