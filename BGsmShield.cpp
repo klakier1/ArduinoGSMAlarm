@@ -333,21 +333,27 @@ void BGsmShield::RxInit(uint16_t start_comm_tmout,
 
 void BGsmShield::Loop() {
 	//TODO
-//	if (this->_call_in_prog){
-//		_cell.println(F("AT+CPAS"));
-//		delay(100);
-//	}
-	byte status = WaitResp(1, 10);
+	if (this->_call_in_prog && !this->_waitingCpasResponse) {
+		time_t time = now();
+		if (lastTime + 2 < time) {
+			this->_cell.println(F("AT+CPAS"));
+			this->_waitingCpasResponse = true;
+			lastTime = time;
+		}
+	}
+	byte status = WaitResp(1, 3);
 	if (status != RX_TMOUT_ERR) {
 		ProcessIncomingCommand();
 	}
 	/* PROCESS PENDING SMS, ON PER LOOP */
 	int no = 0; //container for sms number
-	if (_smsQueue >> no) {		//if pop from queue success, process it
-		Serial.print(F("PROC PENDING SMS: "));
-		Serial.println(no);
-		if (!ProcessSMS(no))
-			_smsQueue << no;	//if SMS no read put it on the end of queue
+	if (!_call_in_prog) {
+		if (_smsQueue >> no) {		//if pop from queue success, process it
+			Serial.print(F("PROC PENDING SMS: "));
+			Serial.println(no);
+			if (!ProcessSMS(no))
+				_smsQueue << no;	//if SMS no read put it on the end of queue
+		}
 	}
 }
 
@@ -407,7 +413,12 @@ void BGsmShield::ProcessIncomingCommand() {
 			Serial.print(F("Sms numer: "));
 			Serial.println(no);
 
-			ProcessSMS(no);
+			if (!_call_in_prog) {
+				ProcessSMS(no);
+			} else {
+				Serial.println(F("SMS TO QUEUE"));
+				_smsQueue << no;
+			}
 		}
 
 		/*+CPAS:*/
@@ -418,12 +429,14 @@ void BGsmShield::ProcessIncomingCommand() {
 		Serial.print(F("CALL STATUS RESPONSE "));
 		Serial.println(status);
 		if (status == 4) {
-//			Serial.println(F("REJECT"));
+			Serial.println(F("REJECT"));
 			SendATCmdWaitResp("ATH", 500, 20, "OK", 5); //if call in progress, hang up
 
 		} else if (status == 0) {
 			_call_in_prog = false;
 		}
+
+		_waitingCpasResponse = false;
 	}
 }
 
@@ -706,6 +719,8 @@ int BGsmShield::ProcessSMS(int no) {
 	char *msg, *tel;
 	size_t msg_len, tel_len;
 
+	Serial.println(F("PROC SMS START"));
+
 	if (ReadSms(no, &msg, &msg_len, &tel, &tel_len) == 1) {
 		if (incomeSmsCallback != NULL)
 			if (!incomeSmsCallback(tel, tel_len, msg, msg_len)) {
@@ -722,7 +737,7 @@ int BGsmShield::ProcessSMS(int no) {
 					SendSMSEnd();
 				}
 			} else {
-				Serial.println(F("PROCESSING SMS OK"));
+
 			}
 	} else {
 		return 0;
@@ -778,4 +793,8 @@ void BGsmShield::MakeCall(const char *number_str) {
 	_cell.println(F(";"));
 	WaitResp(100, 1, "OK");
 	this->_call_in_prog = true; // check status
+}
+
+bool BGsmShield::IsCalling(){
+	return _call_in_prog;
 }

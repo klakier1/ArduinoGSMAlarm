@@ -51,8 +51,8 @@ void errorHandler(const __FlashStringHelper *msg = NULL);
 void setup() {
 	Serial.begin(57600);
 
-	sensor1 = new PIRSensor(sensor1Pin, 3.0, sensorCallback);
-	sensor2 = new PIRSensor(sensor2Pin, 3.0, sensorCallback);
+	sensor1 = new PIRSensor(sensor1Pin, 2.5, sensorCallback);
+	sensor2 = new PIRSensor(sensor2Pin, 2.5, sensorCallback);
 	bgsm = new BGsmShield();
 	bgsm->SetIncomeVoiceCallback(incomingVoiceCallback);
 	bgsm->SetIncomeSmsCallback(incomingSmsCallback);
@@ -117,6 +117,8 @@ void setup() {
 
 	BGsmShield::sp_bgsm = bgsm;
 	setSyncProvider(BGsmShield::GetTime);
+	//Sync interval to 1 hour
+	setSyncInterval(3600);
 }
 
 void loop() {
@@ -145,7 +147,20 @@ void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 				else if (sensor == sensor2)
 					bgsm->SendSMSFromStorage(number, smsNumAlaram2);
 			}
-		}PRINT_DEBUG_ALARM(F("Alarm "));PRINTLN_DEBUG_ALARM(sensor->pinNumber);
+		}
+
+		//Make Call
+		tmElements_t te;
+		breakTime(now(), te);
+		//Serial.println(te.Hour);
+		//pomiedzy 20 a 6 dzwon
+		if (!bgsm->IsCalling()) {
+			if (te.Hour >= 20 || te.Hour < 6) {
+				bgsm->MakeCall(bgsm->GetDebugNumber());
+			}
+		}
+		//Debug Msg
+		PRINT_DEBUG_ALARM(F("Alarm "));PRINTLN_DEBUG_ALARM(sensor->pinNumber);
 		break;
 	}
 	case AlarmStartNotArmed: {

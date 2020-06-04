@@ -98,6 +98,7 @@ public:
 
 	//Make call
 	void MakeCall(const char *number_str);
+	bool IsCalling();
 
 	//Debug number;
 	void SetDebugNumber(const char*);
@@ -144,6 +145,7 @@ private:
 
 	volatile bool _call_in_prog;
 	time_t lastTime = 0;
+	bool _waitingCpasResponse = false;
 };
 
 #endif /* BGSMSHIELD_H_ */
