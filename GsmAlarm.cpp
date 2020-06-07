@@ -52,7 +52,7 @@ void setup() {
 	Serial.begin(57600);
 
 	sensor1 = new PIRSensor(sensor1Pin, 2.5, sensorCallback);
-	sensor2 = new PIRSensor(sensor2Pin, 2.5, sensorCallback);
+	sensor2 = new PIRSensor(sensor2Pin, 3.0, sensorCallback);
 	bgsm = new BGsmShield();
 	bgsm->SetIncomeVoiceCallback(incomingVoiceCallback);
 	bgsm->SetIncomeSmsCallback(incomingSmsCallback);
@@ -155,7 +155,7 @@ void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 		//Serial.println(te.Hour);
 		//pomiedzy 20 a 6 dzwon
 		if (!bgsm->IsCalling()) {
-			if (te.Hour >= 20 || te.Hour < 6) {
+			if (te.Hour >= 22 || te.Hour < 6) {
 				bgsm->MakeCall(bgsm->GetDebugNumber());
 			}
 		}

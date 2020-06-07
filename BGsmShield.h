@@ -145,7 +145,7 @@ private:
 
 	volatile bool _call_in_prog;
 	time_t lastTime = 0;
-	bool _waitingCpasResponse = false;
+	//bool _waitingCpasResponse = false;
 };
 
 #endif /* BGSMSHIELD_H_ */

@@ -333,11 +333,11 @@ void BGsmShield::RxInit(uint16_t start_comm_tmout,
 
 void BGsmShield::Loop() {
 	//TODO
-	if (this->_call_in_prog && !this->_waitingCpasResponse) {
+	if (this->_call_in_prog /*&& !this->_waitingCpasResponse*/) {
 		time_t time = now();
 		if (lastTime + 2 < time) {
 			this->_cell.println(F("AT+CPAS"));
-			this->_waitingCpasResponse = true;
+			//this->_waitingCpasResponse = true;
 			lastTime = time;
 		}
 	}
@@ -436,7 +436,7 @@ void BGsmShield::ProcessIncomingCommand() {
 			_call_in_prog = false;
 		}
 
-		_waitingCpasResponse = false;
+		//_waitingCpasResponse = false;
 	}
 }
 
