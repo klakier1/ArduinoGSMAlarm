@@ -9,6 +9,7 @@
 
 /*********** Macros and defines ******************************************************/
 #define DEBUG_ALARM 	0
+#define DEBUG_SMS 		0
 
 #if DEBUG_ALARM
 #define PRINT_DEBUG_ALARM(x)  Serial.print(x);
@@ -16,6 +17,14 @@
 #else
 #define PRINT_DEBUG_ALARM(x)
 #define PRINTLN_DEBUG_ALARM(x)
+#endif
+
+#if DEBUG_SMS
+#define PRINT_SMS_ALARM(x)  Serial.print(x);
+#define PRINTLN_SMS_ALARM(x)  Serial.println(x);
+#else
+#define PRINT_SMS_ALARM(x)
+#define PRINTLN_SMS_ALARM(x)
 #endif
 
 /*********** Constants ***************************************************************/
@@ -45,6 +54,7 @@ void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args);
 void incomingVoiceCallback(char *num, size_t num_len);
 bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len);
 void errorHandler(const __FlashStringHelper *msg = NULL);
+void armAlarm(bool arm, char* num);
 
 /*********** User Code **************************************************************/
 
@@ -119,6 +129,11 @@ void setup() {
 	setSyncProvider(BGsmShield::GetTime);
 	//Sync interval to 1 hour
 	setSyncInterval(3600);
+
+	bgsm->SendSMSBegin(bgsm->GetDebugNumber());
+	bgsm->SendSMSAttachText(F("START URZADZENIA"));
+	bgsm->SendSMSEnd();
+
 }
 
 void loop() {
@@ -155,8 +170,8 @@ void sensorCallback(AlarmEvent event, PIRSensor *sensor, void *args) {
 		//Serial.println(te.Hour);
 		//pomiedzy 20 a 6 dzwon
 		if (!bgsm->IsCalling()) {
-			if (te.Hour >= 22 || te.Hour < 6) {
-				bgsm->MakeCall(bgsm->GetDebugNumber());
+			if (te.Hour >= 20 || te.Hour < 6) {
+				bgsm->MakeCall("791529222");
 			}
 		}
 		//Debug Msg
@@ -225,14 +240,10 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 				bgsm->SendSMSEnd();
 			}
 		} else if (memcmp("Start", msg, 5) == 0) {
-			bgsm->SendSMSFromStorage(num, smsNumArmed);
-			sensor1->Arm(true);
-			sensor2->Arm(true);
+			armAlarm(true, num);
 
 		} else if (memcmp("Stop", msg, 4) == 0) {
-			bgsm->SendSMSFromStorage(num, smsNumDisarmed);
-			sensor1->Arm(false);
-			sensor2->Arm(false);
+			armAlarm(false, num);
 
 		} else if (memcmp("AddNum ", msg, 7) == 0) {
 			//bgsm->SendSMSFromStorage(num, smsNumMemberAdd);
@@ -374,24 +385,10 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 			}
 
 		} else if (memcmp("Start", msg, 5) == 0) {
-			bgsm->SendSMSFromStorage(num, smsNumArmed);
-			sensor1->Arm(true);
-			sensor2->Arm(true);
-
-			bgsm->SendSMSBegin(bgsm->GetDebugNumber());
-			bgsm->SendSMSAttachText(F("ARMED BY "));
-			bgsm->SendSMSAttachText(num);
-			bgsm->SendSMSEnd();
+			armAlarm(true, num);
 
 		} else if (memcmp("Stop", msg, 4) == 0) {
-			bgsm->SendSMSFromStorage(num, smsNumDisarmed);
-			sensor1->Arm(false);
-			sensor2->Arm(false);
-
-			bgsm->SendSMSBegin(bgsm->GetDebugNumber());
-			bgsm->SendSMSAttachText(F("DISARMED BY "));
-			bgsm->SendSMSAttachText(num);
-			bgsm->SendSMSEnd();
+			armAlarm(false, num);
 
 		} else if (memcmp("Status", msg, 6) == 0) {
 			if (bgsm->SendSMSBegin(num)) {
@@ -458,6 +455,32 @@ bool incomingSmsCallback(char *num, size_t num_len, char *msg, size_t msg_len) {
 	//phonebook.Print();
 	return true;
 
+}
+
+void armAlarm(bool arm, char* num) {
+
+	sensor1->Arm(arm);
+	sensor2->Arm(arm);
+
+	//wyslij sms do uzbrajac¹cego
+	if (arm)
+		bgsm->SendSMSFromStorage(num, smsNumArmed);
+	else
+		bgsm->SendSMSFromStorage(num, smsNumDisarmed);
+
+	//wyslij sms do pozosta³ych
+	for (int i = 0; i < PHONEBOOK_CAPACITY; i++) {
+		char *number = phonebook.phoneNumbers[i];
+		if (number != NULL && strcmp(number, Phonebook::Normalize(num))) {
+			bgsm->SendSMSBegin(number);
+			if (arm)
+				bgsm->SendSMSAttachText(F("UZBROJONY PRZEZ "));
+			else
+				bgsm->SendSMSAttachText(F("ROZBROJONY PRZEZ "));
+			bgsm->SendSMSAttachText(num);
+			bgsm->SendSMSEnd();
+		}
+	}
 }
 
 void errorHandler(const __FlashStringHelper *msg) {

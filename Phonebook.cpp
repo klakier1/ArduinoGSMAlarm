@@ -12,6 +12,7 @@
 
 Phonebook::Phonebook() {
 	phoneNumbers[0] = (char*) "668195261";
+	phoneNumbers[1] = (char*) "791529222";
 	for (int i = PHONEBOOK_FIXED_NUMBERS_COUNT; i < PHONEBOOK_CAPACITY; i++) {
 		phoneNumbers[i] = NULL;
 	}
@@ -129,3 +130,9 @@ int Phonebook::GetPosition(const char *number) {
 	return -1;
 }
 
+static char* Phonebook::Normalize(char * num){
+	size_t len = strlen(num);
+	if (len == 12)
+		return num + 3;
+	return num;
+}

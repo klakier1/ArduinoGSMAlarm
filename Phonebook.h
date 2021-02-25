@@ -10,7 +10,7 @@
 
 #define PHONEBOOK_CAPACITY					5
 #define PHONEBOOK_NUMBER_LEN 				9
-#define PHONEBOOK_FIXED_NUMBERS_COUNT		1
+#define PHONEBOOK_FIXED_NUMBERS_COUNT		2
 
 enum number_status {
 	ERROR = -1, STRANGER, MEMBER, FIXED_MEMBER
@@ -27,7 +27,7 @@ public:
 	number_status Contains(const char *number);
 	void Print(void);
 	int GetPosition(const char *number);
-
+	static char* Normalize(char * num);
 	char *phoneNumbers[PHONEBOOK_CAPACITY];
 
 };
